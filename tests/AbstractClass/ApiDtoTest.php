@@ -2,7 +2,7 @@
 
 namespace Cesurapp\ApiBundle\Tests\AbstractClass;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiDto;
+use Cesurapp\ApiBundle\AbstractClass\ApiDto;
 use Cesurapp\ApiBundle\Exception\ValidationException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,9 +41,9 @@ class AbstractApiDtoTest extends KernelTestCase
         $this->assertSame($dto->validated('send_at')->format(DATE_ATOM), $data['send_at']);
     }
 
-    private function generateDto(Request $request, ValidatorInterface $validator): AbstractApiDto
+    private function generateDto(Request $request, ValidatorInterface $validator): ApiDto
     {
-        return new class ($request, $validator) extends AbstractApiDto {
+        return new class ($request, $validator) extends ApiDto {
             #[Assert\Length(min: 8)]
             public ?string $password = null;
 

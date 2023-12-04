@@ -2,7 +2,7 @@
 
 namespace Cesurapp\ApiBundle\ArgumentResolver;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiDto;
+use Cesurapp\ApiBundle\AbstractClass\ApiDto;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Controller\ValueResolverInterface;
 use Symfony\Component\HttpKernel\ControllerMetadata\ArgumentMetadata;
@@ -19,7 +19,7 @@ readonly class DtoResolver implements ValueResolverInterface
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        if (!is_subclass_of($argument->getType(), AbstractApiDto::class)) {
+        if (!is_subclass_of($argument->getType(), ApiDto::class)) {
             return [];
         }
 

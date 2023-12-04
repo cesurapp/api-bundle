@@ -1,6 +1,6 @@
 <?php
 
-namespace Cesurapp\ApiBundle\Exporter;
+namespace Cesurapp\ApiBundle\Doctrine;
 
 use Doctrine\ORM\Query;
 use Sonata\Exporter\Source\AbstractPropertySourceIterator;

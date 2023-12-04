@@ -2,7 +2,7 @@
 
 namespace Cesurapp\ApiBundle\Tests\AbstractClass;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiException;
+use Cesurapp\ApiBundle\AbstractClass\ApiException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AbstractApiExceptionTest extends KernelTestCase
@@ -13,7 +13,7 @@ class AbstractApiExceptionTest extends KernelTestCase
 
         $this->expectExceptionCode(450);
 
-        throw new class () extends AbstractApiException {
+        throw new class () extends ApiException {
             public function __construct(
                 string $message = 'Stub Exception!',
                 int $code = 450,

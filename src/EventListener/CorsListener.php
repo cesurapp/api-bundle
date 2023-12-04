@@ -2,6 +2,7 @@
 
 namespace Cesurapp\ApiBundle\EventListener;
 
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -11,15 +12,19 @@ use Symfony\Component\HttpKernel\KernelEvents;
 /**
  * Cors Handler.
  */
-class CorsListener implements EventSubscriberInterface
+readonly class CorsListener implements EventSubscriberInterface
 {
+    public function __construct(private ParameterBagInterface $bag)
+    {
+    }
+
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
             return;
         }
 
-        if (!in_array($event->getRequest()->getRealMethod(), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+        if (!in_array($event->getRequest()->getMethod(), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], true)) {
             $event->setResponse(new JsonResponse([]));
         }
     }
@@ -31,10 +36,9 @@ class CorsListener implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE');
-        $response->headers->set('Access-Control-Allow-Headers', '*');
-        $response->headers->set('Access-Control-Expose-Headers', 'Content-Disposition');
+        foreach ($this->bag->get('api.cors_header') as $header) {
+            $response->headers->set($header['name'], $header['value']);
+        }
     }
 
     public static function getSubscribedEvents(): array

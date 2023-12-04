@@ -2,7 +2,7 @@
 
 namespace Cesurapp\ApiBundle\DependencyInjection;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiController;
+use Cesurapp\ApiBundle\AbstractClass\ApiController;
 use Cesurapp\ApiBundle\Response\ApiResourceInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -13,13 +13,13 @@ class ApiExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container): void
     {
-        $container->registerForAutoconfiguration(AbstractApiController::class)
-            ->addTag('controller.service_arguments');
-
         // Register Configuration
         foreach ($this->processConfiguration(new ApiConfiguration(), $configs) as $key => $value) {
             $container->getParameterBag()->set('api.'.$key, $value);
         }
+
+        $container->registerForAutoconfiguration(ApiController::class)
+            ->addTag('controller.service_arguments');
 
         // Register Api Resources
         $container->registerForAutoconfiguration(ApiResourceInterface::class)

@@ -2,9 +2,9 @@
 
 namespace Cesurapp\ApiBundle\Response\Traits;
 
+use Cesurapp\ApiBundle\Doctrine\DoctrineORMQuerySourceIterator;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
-use Cesurapp\ApiBundle\Exporter\DoctrineORMQuerySourceIterator;
 use Sonata\Exporter\Writer\CsvWriter;
 use Sonata\Exporter\Writer\XlsWriter;
 use Symfony\Component\HttpFoundation\HeaderUtils;

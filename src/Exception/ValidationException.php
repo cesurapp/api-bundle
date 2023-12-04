@@ -2,13 +2,13 @@
 
 namespace Cesurapp\ApiBundle\Exception;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiException;
+use Cesurapp\ApiBundle\AbstractClass\ApiException;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 /**
  * Form Validation Exception.
  */
-class ValidationException extends AbstractApiException
+class ValidationException extends ApiException
 {
     public function __construct(
         string $message = 'Validation failed',

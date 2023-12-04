@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GlobalExceptionHandlerTest extends KernelTestCase
@@ -34,6 +35,22 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         );
     }
 
+    public function testExceptionResponseContainerTest(): void
+    {
+        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $event = new ExceptionEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('/', content: '{"test": "content"}'),
+            1,
+            new NotFoundHttpException(),
+        );
+        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $this->assertEquals(
+            '{"type":"NotFoundHttpException","code":404,"message":""}',
+            $event->getResponse()->getContent()
+        );
+    }
+
     public function testValidationExceptionResponseTest(): void
     {
         $dispatcher = new EventDispatcher();
@@ -50,6 +67,22 @@ class GlobalExceptionHandlerTest extends KernelTestCase
 
         $this->assertEquals(
             '{"type":"ValidationException","code":422,"message":"","errors":null}',
+            $event->getResponse()->getContent()
+        );
+    }
+
+    public function testValidationExceptionResponseContainerTest(): void
+    {
+        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $event = new ExceptionEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('/', content: '{"test": "content"}'),
+            1,
+            new ValidationException(),
+        );
+        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $this->assertEquals(
+            '{"type":"ValidationException","code":422,"message":"Validation failed","errors":null}',
             $event->getResponse()->getContent()
         );
     }

@@ -2,7 +2,7 @@
 
 namespace Cesurapp\ApiBundle\Tests\AbstractClass;
 
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiController;
+use Cesurapp\ApiBundle\AbstractClass\ApiController;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class AbstractApiControllerTest extends KernelTestCase
@@ -12,7 +12,7 @@ class AbstractApiControllerTest extends KernelTestCase
         self::bootKernel();
         $container = self::getContainer();
 
-        $stub = $this->getMockForAbstractClass(AbstractApiController::class);
+        $stub = $this->getMockForAbstractClass(ApiController::class);
         $stubContainer = $stub->setContainer($container);
 
         $this->assertNull($stubContainer);

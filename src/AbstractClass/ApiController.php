@@ -23,7 +23,7 @@ use Symfony\Contracts\Service\ServiceSubscriberInterface;
 /**
  * Provides shortcuts for API features in controllers.
  */
-abstract class AbstractApiController implements ServiceSubscriberInterface
+abstract class ApiController implements ServiceSubscriberInterface
 {
     protected ?ContainerInterface $container = null;
 

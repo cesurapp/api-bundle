@@ -20,11 +20,8 @@ readonly class GlobalRequestAttribute implements EventSubscriberInterface
     {
         $request = $event->getRequest();
 
-        if ($request->isMethod('PUT')) {
-            $token = $this->tokenStorage?->getToken();
-            if ($token && ($user = $token->getUser())) {
-                $request->attributes->set('uid', $user->getId()?->toBase32()); // @phpstan-ignore-line
-            }
+        if ($request->isMethod('PUT') && ($user = $this->tokenStorage?->getToken()?->getUser())) {
+            $request->attributes->set('uid', $user->getId()?->toBase32()); // @phpstan-ignore-line
         }
     }
 

@@ -7,7 +7,7 @@ use Symfony\Component\Validator\ConstraintViolationListInterface;
 /**
  * Abstract Api Exception Class.
  */
-abstract class AbstractApiException extends \Exception
+abstract class ApiException extends \Exception
 {
     public function __construct(
         string $message = '',

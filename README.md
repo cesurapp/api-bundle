@@ -10,13 +10,14 @@ bin/console thor:generate # Generate Documentation to JSON File
 ```
 
 ### Create Api Response
+
 ```php
-use \Cesurapp\ApiBundle\AbstractClass\AbstractApiController;
+use \Cesurapp\ApiBundle\AbstractClass\ApiController;
 use \Cesurapp\ApiBundle\Response\ApiResponse;
 use \Cesurapp\ApiBundle\Thor\Attribute\Thor;
 use \Symfony\Component\Routing\Annotation\Route;
 
-class TestController extends AbstractApiController {
+class TestController extends ApiController {
     #[Thor(
         group: 'Login|1',
         groupDesc: 'Global',
@@ -134,11 +135,11 @@ Backend dates are stored in UTC ATOM format. In GET requests you get dates in AT
 In POST|PUT requests, send dates in ATOM format, converted to UTC.
 
 ```php
-use Cesurapp\ApiBundle\AbstractClass\AbstractApiDto;
+use Cesurapp\ApiBundle\AbstractClass\ApiDto;
 use Cesurapp\ApiBundle\Thor\Attribute\ThorResource;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class LoginDto extends AbstractApiDto {
+class LoginDto extends ApiDto {
     /**
      * Enable Auto Validation -> Default Enabled
      */

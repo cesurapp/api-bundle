@@ -8,6 +8,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 
 class BodyJsonTransformerTest extends KernelTestCase
 {
@@ -23,6 +24,19 @@ class BodyJsonTransformerTest extends KernelTestCase
             1,
         );
         $dispatcher->dispatch($event, 'onKernelRequest');
+
+        $this->assertSame($event->getRequest()->request->all(), ['test' => 'content']);
+    }
+
+    public function testJsonContentEventContainer(): void
+    {
+        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $event = new RequestEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('/', content: '{"test": "content"}', method: 'POST'),
+            1,
+        );
+        $dispatcher->dispatch($event, KernelEvents::REQUEST);
 
         $this->assertSame($event->getRequest()->request->all(), ['test' => 'content']);
     }

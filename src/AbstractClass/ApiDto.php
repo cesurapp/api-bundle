@@ -12,36 +12,24 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 /**
  * Data Transfer Object for Validation.
  */
-abstract class AbstractApiDto
+abstract class ApiDto
 {
-    protected ?string $id = null;
+    protected string|null $id = null;
 
     protected bool $auto = true;
-
-    protected array $validationGroup = ['Default'];
 
     protected array $validated = [];
 
     protected ConstraintViolationListInterface $constraints;
 
-    protected array $exclude = [
-        'request',
-        'validator',
-        'auto',
-        'validationGroup',
-        'validated',
-        'exclude',
-        'constraints',
-        'id',
-    ];
-
     public function __construct(protected Request $request, protected ValidatorInterface $validator)
     {
         $this->constraints = new ConstraintViolationList();
-
-        // Set Parameters
-        $fields = [...$this->request->query->all(), ...$this->request->request->all(), ...$this->request->files->all()];
-        $this->initProperties($fields);
+        $this->initProperties([
+            ...$this->request->query->all(),
+            ...$this->request->request->all(),
+            ...$this->request->files->all(),
+        ]);
 
         // Run Validate
         if ($this->auto) {
@@ -70,7 +58,7 @@ abstract class AbstractApiDto
         $this->beforeValidated();
 
         // Validate
-        $constraints = $this->validator->validate($this, groups: $this->validationGroup);
+        $constraints = $this->validator->validate($this, groups: ['Default']);
         $constraints->addAll($this->constraints);
         if ($constraints->count()) {
             if (!$throw) {
@@ -92,7 +80,14 @@ abstract class AbstractApiDto
     final public function validated(string $key = null): mixed
     {
         if (!$this->validated) {
-            $this->validated = array_diff_key(get_object_vars($this), array_flip($this->exclude));
+            $this->validated = array_diff_key(get_object_vars($this), array_flip([
+                'id',
+                'request',
+                'validator',
+                'auto',
+                'validated',
+                'constraints',
+            ]));
         }
 
         if ($key) {
