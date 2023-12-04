@@ -12,7 +12,7 @@ class ValidationException extends AbstractApiException
 {
     public function __construct(
         string $message = 'Validation failed',
-        int $code = 403,
+        int $code = 422,
         protected array|ConstraintViolationListInterface|null $errors = null
     ) {
         if ($errors instanceof ConstraintViolationListInterface) {

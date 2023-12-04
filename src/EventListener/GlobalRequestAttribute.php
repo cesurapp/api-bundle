@@ -10,9 +10,9 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 /**
  * Append Request Attribute.
  */
-readonly class GlobalRequestAttribute // implements EventSubscriberInterface
+readonly class GlobalRequestAttribute implements EventSubscriberInterface
 {
-    public function __construct(private TokenStorageInterface $tokenStorage)
+    public function __construct(private ?TokenStorageInterface $tokenStorage)
     {
     }
 
@@ -21,7 +21,7 @@ readonly class GlobalRequestAttribute // implements EventSubscriberInterface
         $request = $event->getRequest();
 
         if ($request->isMethod('PUT')) {
-            $token = $this->tokenStorage->getToken();
+            $token = $this->tokenStorage?->getToken();
             if ($token && ($user = $token->getUser())) {
                 $request->attributes->set('uid', $user->getId()?->toBase32()); // @phpstan-ignore-line
             }
