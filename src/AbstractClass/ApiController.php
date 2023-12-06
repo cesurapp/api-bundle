@@ -18,6 +18,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Symfony\Contracts\Service\ServiceSubscriberInterface;
 
 /**
@@ -27,9 +28,7 @@ abstract class ApiController implements ServiceSubscriberInterface
 {
     protected ?ContainerInterface $container = null;
 
-    /**
-     * @required
-     */
+    #[Required]
     public function setContainer(ContainerInterface $container): ?ContainerInterface
     {
         $previous = $this->container;

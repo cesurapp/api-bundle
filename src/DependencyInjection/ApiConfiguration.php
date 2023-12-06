@@ -19,6 +19,7 @@ class ApiConfiguration implements ConfigurationInterface
                 ->scalarNode('base_url')->defaultValue('')->end()
                 ->scalarNode('ts_extra_path')->defaultValue('')->end()
                 ->booleanNode('versioning')->defaultFalse()->end()
+                ->booleanNode('exception_converter')->defaultTrue()->end()
                 ->arrayNode('cors_header')->defaultValue([
                     ['name' => 'Access-Control-Allow-Origin', 'value' => '*'],
                     ['name' => 'Access-Control-Allow-Methods', 'value' => 'GET,POST,PUT,PATCH,DELETE'],

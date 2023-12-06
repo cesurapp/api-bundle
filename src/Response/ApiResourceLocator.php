@@ -3,8 +3,6 @@
 namespace Cesurapp\ApiBundle\Response;
 
 use Cesurapp\ApiBundle\Exception\ResourceNotFoundException;
-use Psr\Container\ContainerExceptionInterface;
-use Psr\Container\NotFoundExceptionInterface;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
 readonly class ApiResourceLocator
@@ -13,11 +11,6 @@ readonly class ApiResourceLocator
     {
     }
 
-    /**
-     * @throws ContainerExceptionInterface
-     * @throws ResourceNotFoundException
-     * @throws NotFoundExceptionInterface
-     */
     public function get(string $resource): ApiResourceInterface
     {
         if ($this->locator->has($resource)) {

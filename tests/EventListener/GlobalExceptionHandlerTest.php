@@ -5,6 +5,7 @@ namespace Cesurapp\ApiBundle\Tests\EventListener;
 use Cesurapp\ApiBundle\EventListener\GlobalExceptionHandler;
 use Cesurapp\ApiBundle\Exception\ValidationException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -15,10 +16,13 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GlobalExceptionHandlerTest extends KernelTestCase
 {
-    public function testExceptionResponseTest(): void
+    public function testExceptionResponse(): void
     {
         $dispatcher = new EventDispatcher();
-        $listener = new GlobalExceptionHandler($this->createMock(TranslatorInterface::class));
+        $listener = new GlobalExceptionHandler(
+            $this->createMock(TranslatorInterface::class),
+            new ParameterBag(['api.exception_converter' => true])
+        );
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
         $event = new ExceptionEvent(
@@ -35,7 +39,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         );
     }
 
-    public function testExceptionResponseContainerTest(): void
+    public function testExceptionResponseContainer(): void
     {
         $dispatcher = self::getContainer()->get('event_dispatcher');
         $event = new ExceptionEvent(
@@ -51,10 +55,13 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         );
     }
 
-    public function testValidationExceptionResponseTest(): void
+    public function testValidationExceptionResponse(): void
     {
         $dispatcher = new EventDispatcher();
-        $listener = new GlobalExceptionHandler($this->createMock(TranslatorInterface::class));
+        $listener = new GlobalExceptionHandler(
+            $this->createMock(TranslatorInterface::class),
+            new ParameterBag(['api.exception_converter' => true])
+        );
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
         $event = new ExceptionEvent(
@@ -71,7 +78,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         );
     }
 
-    public function testValidationExceptionResponseContainerTest(): void
+    public function testValidationExceptionResponseContainer(): void
     {
         $dispatcher = self::getContainer()->get('event_dispatcher');
         $event = new ExceptionEvent(
@@ -85,5 +92,25 @@ class GlobalExceptionHandlerTest extends KernelTestCase
             '{"type":"ValidationException","code":422,"message":"Validation failed","errors":null}',
             $event->getResponse()->getContent()
         );
+    }
+
+    public function testExceptionDisable(): void
+    {
+        $dispatcher = new EventDispatcher();
+        $listener = new GlobalExceptionHandler(
+            $this->createMock(TranslatorInterface::class),
+            new ParameterBag(['api.exception_converter' => false])
+        );
+        $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
+
+        $event = new ExceptionEvent(
+            $this->createMock(HttpKernelInterface::class),
+            Request::create('/', content: '{"test": "content"}'),
+            1,
+            new NotFoundHttpException(),
+        );
+        $dispatcher->dispatch($event, 'onKernelException');
+
+        $this->assertEquals(null, $event->getResponse());
     }
 }

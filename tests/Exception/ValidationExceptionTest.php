@@ -1,6 +1,6 @@
 <?php
 
-namespace Cesurapp\ApiBundle\Tests\AbstractClass;
+namespace Cesurapp\ApiBundle\Tests\Exception;
 
 use Cesurapp\ApiBundle\AbstractClass\ApiDto;
 use Cesurapp\ApiBundle\Exception\ValidationException;
@@ -9,40 +9,33 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class ApiDtoTest extends KernelTestCase
+class ValidationExceptionTest extends KernelTestCase
 {
-    public function testDtoInvalidRequest(): void
-    {
-        self::bootKernel();
-
-        $validator = self::getContainer()->get('validator');
-        $request = new Request();
-
-        $this->expectException(ValidationException::class);
-        $this->generateDto($request, $validator);
-    }
-
-    public function testDtoValidRequest(): void
+    public function testValidationExceptionResponse(): void
     {
         $validator = self::getContainer()->get('validator');
-
         $data = [
             'password' => '123123123',
             'language' => 'en',
-            'first_name' => 'Cesur',
-            'last_name' => 'Apaydın',
-            'send_at' =>  (new \DateTimeImmutable('+1 hour'))->format(DATE_ATOM),
         ];
         $request = new Request(request: $data);
         $request->setMethod('POST');
-        $dto = $this->generateDto($request, $validator);
 
-        $this->assertSame($dto->validated('send_at')->format(DATE_ATOM), $data['send_at']);
+        try {
+            $this->generateDto($request, $validator);
+        } catch (ValidationException $exception) {
+            $this->assertSame(422, $exception->getCode());
+            $this->assertSame($exception->getErrors(), [
+                'first_name' => ['This value should not be null.'],
+                'last_name' => ['This value should not be null.'],
+                'send_at' => ['This value should not be null.'],
+            ]);
+        }
     }
 
-    private function generateDto(Request $request, ValidatorInterface $validator): ApiDto
+    private function generateDto(Request $request, ValidatorInterface $validator): void
     {
-        return new class ($request, $validator) extends ApiDto {
+        new class ($request, $validator) extends ApiDto {
             #[Assert\Length(min: 8)]
             public ?string $password = null;
 

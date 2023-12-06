@@ -2,6 +2,7 @@
 
 namespace Cesurapp\ApiBundle\EventListener;
 
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,15 +15,15 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 readonly class GlobalExceptionHandler implements EventSubscriberInterface
 {
-    public function __construct(private TranslatorInterface $translator)
+    public function __construct(private TranslatorInterface $translator, private ParameterBagInterface $bag)
     {
     }
 
     public function onKernelException(ExceptionEvent $event): void
     {
-        /*if ('dev' === $_ENV['APP_ENV']) {
+        if (!$this->bag->get('api.exception_converter')) {
             return;
-        }*/
+        }
 
         // Create Exception Message
         $exception = $event->getThrowable();

@@ -5,7 +5,7 @@ namespace Cesurapp\ApiBundle\Tests\AbstractClass;
 use Cesurapp\ApiBundle\AbstractClass\ApiException;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
-class AbstractApiExceptionTest extends KernelTestCase
+class ApiExceptionTest extends KernelTestCase
 {
     public function testApiException(): void
     {
