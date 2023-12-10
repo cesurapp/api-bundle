@@ -33,8 +33,8 @@ class TestController extends ApiController {
             AccessDeniedException::class
         ],
         dto: LoginDto::class, 
-        requireAuth: false, 
-        paginate: false, 
+        isAuth: false, 
+        isPaginate: false, 
         order: 0
     )]
     #[Route(name: 'Login', path: '/login', methods: ['POST'])]
@@ -61,8 +61,8 @@ class TestController extends ApiController {
             ],
         ],
         response: [200 => ['data' => UserResource::class]],
-        requireAuth: true, 
-        paginate: false, 
+        isAuth: true, 
+        isPaginate: false, 
         order: 0
     )]
     #[Route(name: 'GetExample', path: '/get', methods: ['GET'])]

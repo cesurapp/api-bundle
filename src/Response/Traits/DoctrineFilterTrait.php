@@ -11,6 +11,9 @@ trait DoctrineFilterTrait
 {
     /**
      * Filter QueryBuilder.
+     *
+     * filter[name]=acme
+     * filter[id]=22
      */
     private function filterQueryBuilder(QueryBuilder|Query $builder, Request $request, array $resource): void
     {
@@ -47,8 +50,8 @@ trait DoctrineFilterTrait
     /**
      * Sort QueryBuilder.
      *
-     * sort=ASC
-     * sort-by=id
+     * ?sort=ASC
+     * ?sort_by=id
      */
     private function sortResult(QueryBuilder|Query $builder, Request $request, array $resource): void
     {

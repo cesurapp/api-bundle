@@ -14,18 +14,14 @@ class ApiConfiguration implements ConfigurationInterface
         // Thor Configuration
         $treeBuilder->getRootNode() // @phpstan-ignore-line
             ->children()
-                ->scalarNode('storage_path')->defaultValue('')->end()
-                ->scalarNode('globals')->defaultValue('')->end()
-                ->scalarNode('base_url')->defaultValue('')->end()
-                ->scalarNode('ts_extra_path')->defaultValue('')->end()
-                ->booleanNode('versioning')->defaultFalse()->end()
                 ->booleanNode('exception_converter')->defaultTrue()->end()
-                ->arrayNode('cors_header')->defaultValue([
-                    ['name' => 'Access-Control-Allow-Origin', 'value' => '*'],
-                    ['name' => 'Access-Control-Allow-Methods', 'value' => 'GET,POST,PUT,PATCH,DELETE'],
-                    ['name' => 'Access-Control-Allow-Headers', 'value' => '*'],
-                    ['name' => 'Access-Control-Expose-Headers', 'value' => 'Content-Disposition'],
-                ])
+                ->arrayNode('cors_header')
+                    ->defaultValue([
+                        ['name' => 'Access-Control-Allow-Origin', 'value' => '*'],
+                        ['name' => 'Access-Control-Allow-Methods', 'value' => 'GET,POST,PUT,PATCH,DELETE'],
+                        ['name' => 'Access-Control-Allow-Headers', 'value' => '*'],
+                        ['name' => 'Access-Control-Expose-Headers', 'value' => 'Content-Disposition'],
+                    ])
                     ->arrayPrototype()
                         ->children()
                             ->scalarNode('name')->end()
@@ -33,7 +29,31 @@ class ApiConfiguration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
-
+                ->arrayNode('thor')->addDefaultsIfNotSet()
+                    ->children()
+                        ->scalarNode('base_url')->defaultNull()->end()
+                        ->arrayNode('global_config')
+                            ->ignoreExtraKeys(false)
+                            ->defaultValue([
+                                'authHeader' => [
+                                    'Content-Type' => 'application/json',
+                                    'Authorization' => 'Bearer Token',
+                                ],
+                                'query' => [],
+                                'request' => [],
+                                'header' => [
+                                    'Content-Type' => 'application/json',
+                                    'Accept' => 'application/json',
+                                ],
+                                'response' => [],
+                                'isAuth' => true,
+                                'isHidden' => false,
+                                'isPaginate' => false,
+                            ])
+                            ->arrayPrototype()->ignoreExtraKeys(false)->addDefaultsIfNotSet()->end()
+                        ->end()
+                    ->end()
+                ->end()
             ->end();
 
         return $treeBuilder;

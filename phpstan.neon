@@ -4,5 +4,7 @@ parameters:
     checkGenericClassInNonGenericObjectType: false
     paths:
         - src
+    excludePaths:
+        - 'src/Thor/Template/*'
 #    ignoreErrors:
 #        - '#id is never written, only read#'

@@ -25,7 +25,7 @@ class ApiResponse
 
     private int $code = 200;
     private array $headers = [];
-    private mixed $data = [];
+    private mixed $data = ['data' => []];
     private array $options = [];
     private ?string $resource = null;
     private mixed $resourceOptionalData = null;
@@ -69,18 +69,18 @@ class ApiResponse
 
     public function setData(mixed $data): self
     {
-        if (!is_array($data)) {
-            $data = ['data' => $data];
-        }
-
-        $this->data = $data;
+        $this->data = ['data' => $data];
 
         return $this;
     }
 
-    public function addData(string $key, mixed $value): self
+    public function addData(string $key, mixed $value, bool $appendRoot = false): self
     {
-        $this->data[$key] = $value;
+        if ($appendRoot) {
+            $this->data[$key] = $value;
+        } else {
+            $this->data['data'][$key] = $value;
+        }
 
         return $this;
     }
@@ -219,7 +219,7 @@ class ApiResponse
 
         // Process Resource
         array_walk_recursive(
-            $this->data,
+            $this->data['data'],
             fn (&$d) => !is_object($d) ?: $d = $resLocator->process($d, $this->resource, $this->resourceOptionalData)
         );
 
@@ -241,6 +241,9 @@ class ApiResponse
 
     /**
      * Paginate Query to Offset.
+     *
+     * ?page=1
+     * ?page=3
      */
     private function paginate(Request $request): void
     {

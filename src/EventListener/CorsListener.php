@@ -37,7 +37,9 @@ readonly class CorsListener implements EventSubscriberInterface
 
         $response = $event->getResponse();
         foreach ($this->bag->get('api.cors_header') as $header) {
-            $response->headers->set($header['name'], $header['value']);
+            if (!$response->headers->has($header['name'])) {
+                $response->headers->set($header['name'], $header['value']);
+            }
         }
     }
 

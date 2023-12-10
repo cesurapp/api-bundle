@@ -15,7 +15,13 @@ class ApiExtension extends Extension
     {
         // Register Configuration
         foreach ($this->processConfiguration(new ApiConfiguration(), $configs) as $key => $value) {
-            $container->getParameterBag()->set('api.'.$key, $value);
+            if (is_array($value) && !array_is_list($value)) {
+                foreach ($value as $k => $v) {
+                    $container->getParameterBag()->set('api.'.$key.'.'.$k, $v);
+                }
+            } else {
+                $container->getParameterBag()->set('api.'.$key, $value);
+            }
         }
 
         $container->registerForAutoconfiguration(ApiController::class)
