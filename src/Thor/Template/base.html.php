@@ -97,7 +97,7 @@
                                 <q-item-section avatar class="flex">
                                     <div>
                                         <q-btn v-if="item.table" flat color="primary" @click.stop dense icon="format_list_bulleted"><q-tooltip>Data Table --> Table/{{ item.shortName }}.ts</q-tooltip></q-btn>
-                                        <q-btn v-if="item.roles.length > 0" flat color="negative" @click.stop='showRoles(item)' dense icon="perm_identity"><q-tooltip>View Roles</q-tooltip></q-btn>
+                                        <q-btn v-if="item.roles.length > 0" flat :color="item.isAuth ? 'negative' : 'positive'" @click.stop='showRoles(item)' dense icon="perm_identity"><q-tooltip>View Roles</q-tooltip></q-btn>
                                         <q-btn v-if="item.isAuth" flat @click.stop color="negative" dense icon="admin_panel_settings"><q-tooltip>Authorization required.</q-tooltip></q-btn>
                                         <q-btn flat dense icon="code" @click.stop><q-tooltip>Api client method --> {{ item.shortName }}()</q-tooltip></q-btn>
                                     </div>

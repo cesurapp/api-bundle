@@ -7,10 +7,26 @@ use Cesurapp\ApiBundle\Response\ApiResourceInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 
-class ApiExtension extends Extension
+class ApiExtension extends Extension implements PrependExtensionInterface
 {
+    public function prepend(ContainerBuilder $container): void
+    {
+        $acs = [];
+        if ($container->hasExtension('security')) {
+            $all = $container->getExtensionConfig('security');
+            foreach ($all as $config) {
+                if (isset($config['access_control'])) {
+                    $acs += $config['access_control'];
+                }
+            }
+        }
+
+        $container->setParameter('api.thor.access_control', $acs);
+    }
+
     public function load(array $configs, ContainerBuilder $container): void
     {
         // Register Configuration

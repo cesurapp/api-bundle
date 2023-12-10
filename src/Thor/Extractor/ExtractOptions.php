@@ -22,17 +22,28 @@ trait ExtractOptions
             'isPaginate' => $thorAttr['isPaginate'] ?? false,
             'isAuth' => $thorAttr['isAuth'] ?? true,
             'order' => $thorAttr['order'] ?? 0,
-            'roles' => $this->extractRoles($refMethod, $thorAttr),
+            'roles' => $this->extractRoles($route, $refMethod, $thorAttr),
         ];
     }
 
-    private function extractRoles(\ReflectionMethod $method, array $thorAttr): array
+    private function extractRoles(Route $route, \ReflectionMethod $method, array $thorAttr): array
     {
-        $permission = $method->getAttributes(IsGranted::class);
-        if ($permission) {
-            $permission = $permission[0]->getArguments();
+        $permissions = $method->getAttributes(IsGranted::class);
+        if ($permissions) {
+            $permissions = $permissions[0]->getArguments();
         }
 
-        return array_merge($permission, $thorAttr['roles'] ?? []);
+        // Security Access Control Get Roles
+        $accessControl = $this->bag->get('api.thor.access_control');
+        if ($accessControl) {
+            foreach ($accessControl as $item) {
+                if (preg_match("{{$item['path']}}", $route->getPath())) {
+                    $arr = !is_array($item['roles']) ? [$item['roles']] : $item['roles'];
+                    array_push($permissions, ...$arr);
+                }
+            }
+        }
+
+        return array_unique(array_merge($permissions, $thorAttr['roles'] ?? []));
     }
 }
