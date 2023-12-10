@@ -96,7 +96,7 @@ trait ExtractDto
                         }
 
                         if ($ref->isEnum()) {
-                            $this->custom['_enums'][$this->baseClass($type)] = $type;
+                            $this->custom['_enums'][ThorExtractor::baseClass($type)] = $type;
 
                             return ($isNull ? '?' : '').$type;
                         }
@@ -209,7 +209,7 @@ trait ExtractDto
             $extractedTypes = $this->extractTypes($property->getType());
             foreach ($extractedTypes as $t) {
                 if (enum_exists($t)) {
-                    $this->custom['_enums'][self::baseClass($t)] = $t;
+                    $this->custom['_enums'][ThorExtractor::baseClass($t)] = $t;
                 }
             }
 
@@ -247,7 +247,7 @@ trait ExtractDto
         $validations = implode('|', array_map(function ($attribute) {
             $args = $attribute->getArguments() ? '('.http_build_query($attribute->getArguments(), '', ', ').')' : '';
 
-            return $this->baseClass($attribute->getName()).$args;
+            return ThorExtractor::baseClass($attribute->getName()).$args;
         }, $attributes));
 
         return [

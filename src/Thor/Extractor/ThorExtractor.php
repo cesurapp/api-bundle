@@ -43,7 +43,7 @@ class ThorExtractor
         // Resource Extractor
         array_walk_recursive($data, static function (&$val) use ($data) {
             if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
-                $val = $data['_resource'][self::baseClass($val)];
+                $val = $data['_resource'][ThorExtractor::baseClass($val)];
             }
         });
 
@@ -148,7 +148,7 @@ class ThorExtractor
 
         foreach ($this->resourceLocator->all() as $class => $type) {
             $resource = $this->resourceLocator->get($class)->toResource();
-            $resources[self::baseClass($class)] = array_combine(array_keys($resource), array_column($resource, 'type'));
+            $resources[ThorExtractor::baseClass($class)] = array_combine(array_keys($resource), array_column($resource, 'type'));
         }
 
         return $resources;

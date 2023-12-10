@@ -20,7 +20,7 @@ import type { <?php echo ucfirst($route['shortName']); ?>Query } from './Query/<
 <?php if (isset($route['routeAttr'])) {
     foreach ($route['routeAttr'] as $name => $class) { ?>
 <?php if (enum_exists($class)) { ?>
-import type { <?php echo ucfirst($helper::baseClass($class)); ?> } from './Enum/<?php echo ucfirst($helper::baseClass($class)); ?>';
+import type { <?php echo ucfirst(\Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?> } from './Enum/<?php echo ucfirst(\Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?>';
 <?php } ?>
 <?php }
     } ?>
