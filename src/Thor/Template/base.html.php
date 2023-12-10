@@ -57,13 +57,14 @@
     </style>
 </head>
 <body>
-<div id="app" class="bg-grey-2">
-    <q-layout view="hHh LpR lFf">
+<div id="app">
+    <q-layout view="hHh LpR lFf" :class="$q.dark.isActive ? 'bg-dark' : 'bg-grey-2'">
         <!--Header-->
-        <q-header elevated class="bg-primary text-white">
+        <q-header class="bg-primary text-white">
             <q-toolbar>
                 <q-btn dense flat round icon="description" @click="leftDrawerOpen = !leftDrawerOpen"></q-btn>
                 <q-toolbar-title>API Documentation</q-toolbar-title>
+                <q-btn flat icon="contrast" class="q-px-sm" @click="$q.dark.toggle()"></q-btn>
                 <q-btn flat icon="info" class="q-px-sm" @click="viewInfo"></q-btn>
                 <q-btn-dropdown class="q-px-sm" flat icon="download" label="Download" :menu-offset="[0, 8]">
                     <q-list>
@@ -76,9 +77,9 @@
         </q-header>
 
         <!--Sidebar-->
-        <q-drawer show-if-above v-model="leftDrawerOpen" side="left" class="bg-grey-2 q-pa-md">
+        <q-drawer show-if-above v-model="leftDrawerOpen" side="left" class="q-pa-md" :class="$q.dark.isActive ? '' : 'bg-grey-2'">
             <q-list bordered separator class="rounded-borders">
-                <q-item class="bg-white" @click="scrollToId(toSlugify(title))" clickable v-ripple v-for="title in getSidebarTitles"><q-item-section>{{ title }}</q-item-section></q-item>
+                <q-item :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" @click="scrollToId(toSlugify(title))" clickable v-ripple v-for="title in getSidebarTitles"><q-item-section>{{ title }}</q-item-section></q-item>
             </q-list>
         </q-drawer>
 
@@ -88,7 +89,7 @@
                 <div :key="title" v-for="(stack, title) in docData">
                     <h5 :id="toSlugify(title)" class="text-h6 text-weight-regular q-mx-none q-mb-sm q-mt-md header">{{ title }}</h5>
                     <q-list bordered class="rounded-borders">
-                        <q-expansion-item group="items" :key="title + index" v-for="(item, index) in stack" header-class="bg-white" class='main-expand'>
+                        <q-expansion-item group="items" :key="title + index" v-for="(item, index) in stack" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" class='main-expand'>
                             <template #header>
                                 <q-item-section avatar style="min-width: 85px" class='gt-sm'><q-badge :color="methodColors[item.methods[0] ?? 'GET']" class="q-pa-sm text-weight-medium">{{ item.methods[0] ?? 'GET' }}</q-badge></q-item-section>
                                 <q-item-section avatar class='lt-md'><q-badge :color="methodColors[item.methods[0] ?? 'GET']" class="q-pa-sm text-weight-medium">{{ item.methods[0] ?? 'GET' }}</q-badge></q-item-section>
@@ -113,14 +114,14 @@
                                     </div>
 
                                     <!--Info-->
-                                    <q-banner v-if='item.info' rounded class='bg-white q-mb-md' style='padding-top: 12px; padding-bottom: 12px'>
+                                    <q-banner v-if='item.info' rounded class='q-mb-md' :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" style='padding-top: 12px; padding-bottom: 12px'>
                                         <template v-slot:avatar><q-icon name="info" color="primary" size='md'></q-icon></template>
                                         {{ item.info }}
                                     </q-banner>
 
                                     <q-list class='rounded-borders sub-expand'>
                                         <!--Route Attributes-->
-                                        <q-expansion-item v-if='isEmpty(item.routeAttr)' dense dense-toggle icon="code" label="Route Attributes" header-class='bg-white'>
+                                        <q-expansion-item v-if='isEmpty(item.routeAttr)' dense dense-toggle icon="code" label="Route Attributes" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>
@@ -136,7 +137,7 @@
                                         </q-expansion-item>
 
                                         <!--Header Parameters-->
-                                        <q-expansion-item v-if='isEmpty(item.header)' dense dense-toggle icon="code" label="Header Parameters" header-class='bg-white'>
+                                        <q-expansion-item v-if='isEmpty(item.header)' dense dense-toggle icon="code" label="Header Parameters" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>
@@ -149,7 +150,7 @@
                                         </q-expansion-item>
 
                                         <!--Query Parameters-->
-                                        <q-expansion-item v-if='isEmpty(item.query)' dense dense-toggle icon="code" label="Query Parameters" header-class='bg-white'>
+                                        <q-expansion-item v-if='isEmpty(item.query)' dense dense-toggle icon="code" label="Query Parameters" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>
@@ -169,7 +170,7 @@
                                         </q-expansion-item>
 
                                         <!--Body Parameters-->
-                                        <q-expansion-item v-if='isEmpty(item.request)' dense dense-toggle icon="data_array" label="Body Parameters" header-class='bg-white'>
+                                        <q-expansion-item v-if='isEmpty(item.request)' dense dense-toggle icon="data_array" label="Body Parameters" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>
@@ -188,7 +189,7 @@
                                         </q-expansion-item>
 
                                         <!--Response-->
-                                        <q-expansion-item v-if='isEmpty(item.response)' dense dense-toggle icon="data_object" label="Response" header-class='bg-white text-positive'>
+                                        <q-expansion-item v-if='isEmpty(item.response)' dense dense-toggle icon="data_object" label="Response" :header-class="$q.dark.isActive ? 'bg-grey-9 text-positive' : 'bg-white text-positive'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>
@@ -202,7 +203,7 @@
                                         </q-expansion-item>
 
                                         <!--Response Exception-->
-                                        <q-expansion-item v-if='isEmpty(item.exception)' dense dense-toggle icon="bug_report" label="Response Exception" header-class='bg-white text-negative'>
+                                        <q-expansion-item v-if='isEmpty(item.exception)' dense dense-toggle icon="bug_report" label="Response Exception" :header-class="$q.dark.isActive ? 'bg-grey-9 text-negative' : 'bg-white text-negative'">
                                             <q-card class='q-table--dense'>
                                                 <table class='q-table'>
                                                     <tbody>

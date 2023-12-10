@@ -14,7 +14,7 @@ class User
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'string', unique: true)]
     private string $email;
 
     public function getId(): ?int

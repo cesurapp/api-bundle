@@ -45,6 +45,7 @@ class UniqueValidatorTest extends KernelTestCase
         $entityManager = $kernel->getContainer()->get('doctrine')->getManager();
         $metaData = $entityManager->getMetadataFactory()->getAllMetadata();
         $schemaTool = new SchemaTool($entityManager);
+        $schemaTool->dropDatabase();
         $schemaTool->updateSchema($metaData);
     }
 }
