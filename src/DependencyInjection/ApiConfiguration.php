@@ -33,24 +33,27 @@ class ApiConfiguration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('base_url')->defaultNull()->end()
                         ->arrayNode('global_config')
-                            ->ignoreExtraKeys(false)
-                            ->defaultValue([
-                                'authHeader' => [
-                                    'Content-Type' => 'application/json',
-                                    'Authorization' => 'Bearer Token',
-                                ],
-                                'query' => [],
-                                'request' => [],
-                                'header' => [
-                                    'Content-Type' => 'application/json',
-                                    'Accept' => 'application/json',
-                                ],
-                                'response' => [],
-                                'isAuth' => true,
-                                'isHidden' => false,
-                                'isPaginate' => false,
-                            ])
-                            ->arrayPrototype()->ignoreExtraKeys(false)->addDefaultsIfNotSet()->end()
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->variableNode('authHeader')
+                                    ->defaultValue([
+                                        'Content-Type' => 'application/json',
+                                        'Authorization' => 'Bearer Token',
+                                    ])
+                                ->end()
+                                ->variableNode('query')->defaultValue([])->end()
+                                ->variableNode('request')->defaultValue([])->end()
+                                ->variableNode('header')
+                                    ->defaultValue([
+                                        'Content-Type' => 'application/json',
+                                        'Accept' => 'application/json',
+                                    ])
+                                ->end()
+                                ->variableNode('response')->defaultValue([])->end()
+                                ->booleanNode('isAuth')->defaultValue(true)->end()
+                                ->booleanNode('isPaginate')->defaultValue(false)->end()
+                                ->booleanNode('isHidden')->defaultValue(false)->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()

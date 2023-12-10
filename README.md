@@ -3,10 +3,56 @@
 [![App Tester](https://github.com/cesurapp/api-bundle/actions/workflows/testing.yaml/badge.svg)](https://github.com/cesurapp/api-bundle/actions/workflows/testing.yaml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?logo=Unlicense)](LICENSE.md)
 
-### Generate Documentation
-__Endpoint:__ http:://127.0.0.1:8000/thor
+This package allows you to expose fast api endpoints with Symfony. 
+
+__Features:__
+* Json request body transformer 
+* Error messages are collected under a single format.
+* Language translation is applied to all error messages.
+* Custom cors header support
+* Automatic documentation generator (Thor)
+* Typescript client generator
+* Api DTO resolver
+* Doctrine filter & sorter resource
+* PhoneNumber, UniqueEntity, Username validator
+* Excel, Csv exporter (Sonata Export Bundle)
+
+### Install
+Required Symfony 7
 ```shell
-bin/console thor:generate # Generate Documentation to JSON File
+composer req cesurapp/api-bundle
+```
+
+__Configuration:__ config/packages/api.yaml
+```yaml
+api:
+  exception_converter: false
+  cors_header:
+    - { name: 'Access-Control-Allow-Origin', value: '*' }
+    - { name: 'Access-Control-Allow-Methods', value: 'GET,POST,PUT,PATCH,DELETE' }
+    - { name: 'Access-Control-Allow-Headers', value: '*' }
+    - { name: 'Access-Control-Expose-Headers', value: 'Content-Disposition' }
+  thor:
+    base_url: "%env(APP_DEFAULT_URI)%"
+    global_config:
+      authHeader:
+        Content-Type: application/authheader
+        Authorization: 'Bearer Token'
+      query: []
+      request: []
+      header:
+        Content-Type: application/header
+        Accept: application/headaadsa
+      response: []
+      isAuth: true
+      isPaginate: true
+      isHidden: false
+```
+
+### Generate TypeScript Client
+__View Documentation:__ http:://127.0.0.1:8000/thor
+```shell
+bin/console thor:extract ./path # Generate Documentation to Directory
 ```
 
 ### Create Api Response
@@ -19,9 +65,9 @@ use \Symfony\Component\Routing\Annotation\Route;
 
 class TestController extends ApiController {
     #[Thor(
-        group: 'Login|1',
-        groupDesc: 'Global',
-        desc: 'Login EndPoint',
+        stack: 'Login|1',
+        title: 'Login EndPoint',
+        info: "Description",
         request: [
             'username' => 'string',
             'password' => 'string',
@@ -49,9 +95,8 @@ class TestController extends ApiController {
     }
     
     #[Thor(
-        group: 'Profile|2',
-        groupDesc: 'Global',
-        desc: 'Profile EndPoint',
+        stack: 'Profile|2',
+        title: 'Profile EndPoint',
         query: [
             'name' => '?string',
             'filter' => [
@@ -183,47 +228,4 @@ class LoginDto extends ApiDto {
     ]])]
     public ?array $data;
 }
-```
-
-### Swoole Coroutine HTTP Client
-Replaced Symfony HttpClientInteface with Swoole. It provides high performance.
-
-Example:
-
-```php
-public function homeControllerAction(\Symfony\Contracts\HttpClient\HttpClientInterface $client){
-    $client->request('POST', 'https://google.com') // Swoole Coroute HTTP Client
-}
-```
-
-Without Dependency Injection:
-
-GET | DELETE Request:
-
-```php
-\Cesurapp\ApiBundle\Client\SwooleClient::create('https://www.google.com')
-    ->setHeaders(['Host' => 'www.app.test'])
-    //->get(['key' => 'value'])
-    //->delete(['key' => 'value'])
-```
-
-POST | PUT | PATCH Request:
-
-```php
-\Cesurapp\ApiBundle\Client\SwooleClient::create('https://www.google.com')
-    ->setHeaders(['Host' => 'www.app.test'])
-    //->post(['key' => 'value'])
-    //->put(['key' => 'value'])
-    //->patch(['key' => 'value'])
-```
-
-Custom Request:
-
-```php
-\Cesurapp\ApiBundle\Client\SwooleClient::create('https://www.google.com')
-    ->setHeaders(['Host' => 'www.app.test'])
-    ->setMethod('POST')
-    ->setData(['key' => 'value'])
-    ->setQuery(['key' => 'value'])
-    ->execute();   
 ```

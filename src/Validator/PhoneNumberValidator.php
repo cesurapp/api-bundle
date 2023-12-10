@@ -106,7 +106,6 @@ class PhoneNumberValidator extends ConstraintValidator
         if (null !== $path = $constraint->regionPath) {
             $object = $this->context->getObject();
             if (null === $object) {
-                dump($object);
                 throw new \LogicException('The current validation does not concern an object');
             }
 

@@ -14,8 +14,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 abstract class ApiDto
 {
-    protected string|null $id = null;
-
     protected bool $auto = true;
 
     protected array $validated = [];
@@ -49,11 +47,6 @@ abstract class ApiDto
      */
     final public function validate(bool $throw = false): bool
     {
-        // Append ID for Edit Request
-        if ($this->request->isMethod('PUT')) {
-            $this->id = $this->request->attributes->get('id', $this->request->attributes->get('uid'));
-        }
-
         // Start Validated
         $this->beforeValidated();
 
@@ -81,7 +74,6 @@ abstract class ApiDto
     {
         if (!$this->validated) {
             $this->validated = array_diff_key(get_object_vars($this), array_flip([
-                'id',
                 'request',
                 'validator',
                 'auto',
@@ -125,11 +117,6 @@ abstract class ApiDto
     public function initObject(string $object): mixed
     {
         return $object;
-    }
-
-    public function getId(): ?string
-    {
-        return $this->id;
     }
 
     private function initProperties(array $fields): void
