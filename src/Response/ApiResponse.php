@@ -25,7 +25,7 @@ class ApiResponse
 
     private int $code = 200;
     private array $headers = [];
-    private mixed $data = ['data' => []];
+    private mixed $data = [];
     private array $options = [];
     private ?string $resource = null;
     private mixed $resourceOptionalData = null;
@@ -69,7 +69,11 @@ class ApiResponse
 
     public function setData(mixed $data): self
     {
-        $this->data = ['data' => $data];
+        if (is_array($data)) {
+            $this->data = $data;
+        } else {
+            $this->data = ['data' => $data];
+        }
 
         return $this;
     }
@@ -79,6 +83,9 @@ class ApiResponse
         if ($appendRoot) {
             $this->data[$key] = $value;
         } else {
+            if (!isset($this->data['data'])) {
+                $this->data['data'] = [];
+            }
             $this->data['data'][$key] = $value;
         }
 
@@ -219,7 +226,7 @@ class ApiResponse
 
         // Process Resource
         array_walk_recursive(
-            $this->data['data'],
+            $this->data,
             fn (&$d) => !is_object($d) ?: $d = $resLocator->process($d, $this->resource, $this->resourceOptionalData)
         );
 
@@ -268,7 +275,7 @@ class ApiResponse
         }
 
         // Append Pager Data
-        $this->addData('data', array_slice((array) $iterator, 0, $config['max']));
-        $this->addData('pager', $pager);
+        $this->addData('data', array_slice((array) $iterator, 0, $config['max']), true);
+        $this->addData('pager', $pager, true);
     }
 }

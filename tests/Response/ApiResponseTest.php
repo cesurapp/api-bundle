@@ -14,7 +14,7 @@ class ApiResponseTest extends KernelTestCase
 
         $this->assertSame($response->getStatusCode(), 200);
         $this->assertSame($response->headers->get('custom-header'), 'acme');
-        $this->assertSame($response->getContent(), '{"data":{"test":"acme","custom-data":"acme-data"},"message":{"error":["acme message"]}}');
+        $this->assertSame($response->getContent(), '{"test":"acme","data":{"custom-data":"acme-data"},"message":{"error":["acme message"]}}');
         $this->assertSame($response->headers->get('Access-Control-Allow-Origin'), 'custom-domain.test');
     }
 }
