@@ -12,10 +12,9 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 /**
  * Data Transfer Object for Validation.
  */
+#[\AllowDynamicProperties]
 abstract class ApiDto
 {
-    public string|null $id = null;
-
     protected bool $auto = true;
 
     protected array $validated = [];
@@ -33,7 +32,7 @@ abstract class ApiDto
 
         // Append ID for Edit Request
         if ($this->request->isMethod('PUT')) {
-            $this->id = $this->request->attributes->get('id', $this->request->attributes->get('uid'));
+            $this->id = $this->request->attributes->get('id'); // @phpstan-ignore-line
         }
 
         // Run Validate
@@ -52,7 +51,7 @@ abstract class ApiDto
      *
      * @throws ValidationException
      */
-    final public function validate(bool $throw = false): bool
+    final public function validate(bool $throw = true): bool
     {
         // Start Validated
         $this->beforeValidated();
@@ -130,18 +129,6 @@ abstract class ApiDto
         return $object;
     }
 
-    public function getId(): ?string
-    {
-        return $this->id;
-    }
-
-    public function setId(string $id): self
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
     private function initProperties(array $fields): void
     {
         $refClass = new \ReflectionClass(static::class);
@@ -187,5 +174,12 @@ abstract class ApiDto
                 }
             }
         }
+    }
+
+    public function setProp(string $propName, mixed $value): self
+    {
+        $this->{$propName} = $value;
+
+        return $this;
     }
 }
