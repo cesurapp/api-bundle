@@ -38,8 +38,11 @@ class UniqueEntityValidator extends ConstraintValidator
         }
 
         // Edit Mode Exclude ID
-        if ($constraint->editColumn) {
-            $criteria->andWhere(Criteria::expr()->neq($constraint->editColumn, $this->context->getObject()->{$constraint->editField ?? $constraint->editColumn}));
+        if ($constraint->editField || $constraint->editColumn) {
+            $criteria->andWhere(Criteria::expr()->neq(
+                $constraint->editColumn ?? $constraint->editField,
+                $this->context->getObject()->{$constraint->editField ?? $constraint->editColumn}
+            ));
         }
 
         $repo = $this->entityManager->getRepository($constraint->entityClass); // @phpstan-ignore-line
