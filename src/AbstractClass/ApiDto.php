@@ -124,7 +124,7 @@ abstract class ApiDto
     /**
      * Validated Data to Object Setter.
      */
-    public function initObject(string $object): mixed
+    public function initObject(mixed $object = null): mixed
     {
         return $object;
     }
