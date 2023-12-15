@@ -54,6 +54,24 @@
         .q-table--dense .q-table td, .q-table--dense .q-table th{
             padding: 8px;
         }
+        .header-route.q-item__label--header{
+            padding: 12.5px 12px;
+        }
+        .q-list--bordered {
+            border: none;
+            position: relative;
+        }
+        .q-list--bordered:after {
+            content: " ";
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid rgba(0,0,0,.12);
+            border-radius: 5px;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -64,7 +82,7 @@
             <q-toolbar>
                 <q-btn dense flat round icon="description" @click="leftDrawerOpen = !leftDrawerOpen"></q-btn>
                 <q-toolbar-title>API Documentation</q-toolbar-title>
-                <q-btn flat icon="contrast" class="q-px-sm" @click="$q.dark.toggle()"></q-btn>
+                <q-btn flat icon="contrast" class="q-px-sm" @click="toggleDark(!$q.dark.isActive)"></q-btn>
                 <q-btn flat icon="info" class="q-px-sm" @click="viewInfo"></q-btn>
                 <q-btn-dropdown class="q-px-sm" flat icon="download" label="Download" :menu-offset="[0, 8]">
                     <q-list>
@@ -78,8 +96,11 @@
 
         <!--Sidebar-->
         <q-drawer show-if-above v-model="leftDrawerOpen" side="left" class="q-pa-md" :class="$q.dark.isActive ? '' : 'bg-grey-2'">
-            <q-list bordered separator class="rounded-borders">
-                <q-item :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" @click="scrollToId(toSlugify(title))" clickable v-ripple v-for="title in getSidebarTitles"><q-item-section>{{ title }}</q-item-section></q-item>
+            <q-list v-for="(stacks, routeGroup) in getSidebarTitles" bordered separator class="rounded-borders q-mb-md">
+                <q-item-label header class="text-capitalize header-route bg-primary text-white text-weight-medium">{{ routeGroup }}</q-item-label>
+                <q-item v-for="title in stacks" :class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" @click="scrollToId(toSlugify(title))" clickable v-ripple>
+                    <q-item-section>{{ title }}</q-item-section>
+                </q-item>
             </q-list>
         </q-drawer>
 
@@ -247,12 +268,35 @@
                 docData: <?php echo json_encode(array_filter($data, static fn ($v, $k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_BOTH), JSON_THROW_ON_ERROR); ?>
             }
         },
+        mounted() {
+            this.toggleDark(localStorage.getItem('dark_mode') === 'true')
+        },
         computed: {
             getSidebarTitles() {
-                return Object.keys(this.docData);
+                let routeGroup = {};
+
+                // Extract Group Group
+                Object.entries(this.docData).map(([endpointGroup, endpoints]) => {
+                    let items = Array.isArray(endpoints) ? endpoints : Object.values(endpoints)
+                    items.forEach((endpoint) => {
+                        if (endpoint.hasOwnProperty('routeGroup')) {
+                            if(!routeGroup[endpoint.routeGroup]) {
+                                routeGroup[endpoint.routeGroup] = {}
+                            }
+
+                            routeGroup[endpoint.routeGroup][endpointGroup] = endpointGroup
+                        }
+                    })
+                })
+
+                return routeGroup;
             },
         },
         methods:{
+            toggleDark(status) {
+                this.$q.dark.set(status)
+                localStorage.setItem('dark_mode', status)
+            },
             scrollToId(id) {
                 window.scrollTo({
                     top: document.getElementById(id).getBoundingClientRect().top + window.pageYOffset - 60,

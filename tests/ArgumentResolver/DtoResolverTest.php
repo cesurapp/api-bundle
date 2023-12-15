@@ -10,7 +10,7 @@ class DtoResolverTest extends KernelTestCase
     public function testValidationExceptionResponse(): void
     {
         self::bootKernel();
-        $response = self::$kernel->handle(Request::create('/dto', method: 'POST'));
+        $response = self::$kernel->handle(Request::create('/v1/admin/dto', method: 'POST'));
         $content = json_decode($response->getContent(), true, 512, JSON_THROW_ON_ERROR);
         $this->assertSame([
             'type' => 'ValidationException',

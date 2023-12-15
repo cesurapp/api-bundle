@@ -10,7 +10,7 @@ class ApiResponseTest extends KernelTestCase
     public function testApiResponse(): void
     {
         self::bootKernel();
-        $response = self::$kernel->handle(Request::create('/api-response'));
+        $response = self::$kernel->handle(Request::create('/v1/auth/api-response'));
 
         $this->assertSame($response->getStatusCode(), 200);
         $this->assertSame($response->headers->get('custom-header'), 'acme');

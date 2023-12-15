@@ -12,21 +12,21 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class AcmeController extends ApiController
 {
-    #[Route('/home/{id}', methods: ['GET', 'POST'])]
+    #[Route('/v1/admin/home/{id}', methods: ['GET', 'POST'])]
     #[Thor(stack: 'Home|1', title: 'HomePage', info: 'home page request')]
     public function homeAction(): Response
     {
         return new Response('hi');
     }
 
-    #[Route('/dto', methods: ['POST'])]
+    #[Route('/v1/admin/dto', methods: ['POST'])]
     #[Thor(stack: 'Home', title: 'Acme DTO', info: 'dto request', dto: AcmeDto::class)]
     public function dtoAction(AcmeDto $dto): Response
     {
         return new Response('dto');
     }
 
-    #[Route('/api-response', methods: ['GET'])]
+    #[Route('/v1/auth/api-response', methods: ['GET'])]
     #[Thor(stack: 'ApiResponse|2', title: 'Api Response Test', info: 'api response request')]
     public function apiResponseAction(): ApiResponse
     {

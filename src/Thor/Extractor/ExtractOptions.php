@@ -9,10 +9,14 @@ trait ExtractOptions
 {
     public function extractOptions(\ReflectionClass $refController, \ReflectionMethod $refMethod, Route $route, array $thorAttr): array
     {
+        $mainGroup = explode('/', ltrim($route->getPath(), '/'));
+        $mainGroup = $mainGroup[1] ?? $mainGroup[0] ?? '';
+
         return [
             'path' => $route->getPath(),
             'methods' => $route->getMethods() ?: ['GET'],
-            'shortName' => lcfirst(str_replace('Controller', '', $refController->getShortName())).ucfirst($refMethod->getShortName()),
+            'routeGroup' => $mainGroup,
+            'shortName' => $mainGroup.str_replace('Controller', '', $refController->getShortName()).ucfirst($refMethod->getShortName()),
             'shortController' => ucfirst(str_replace('Controller', '', $refController->getShortName())),
             'stack' => explode('|', $thorAttr['stack'] ?? '')[0],
             'stackOrder' => explode('|', $thorAttr['stack'] ?? '')[1] ?? null,

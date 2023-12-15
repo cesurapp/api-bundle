@@ -33,7 +33,7 @@ class BodyJsonTransformerTest extends KernelTestCase
         $dispatcher = self::getContainer()->get('event_dispatcher');
         $event = new RequestEvent(
             $this->createMock(HttpKernelInterface::class),
-            Request::create('/home/1', method: 'POST', content: '{"test": "content"}'),
+            Request::create('/v1/admin/home/1', method: 'POST', content: '{"test": "content"}'),
             1,
         );
         $dispatcher->dispatch($event, KernelEvents::REQUEST);
