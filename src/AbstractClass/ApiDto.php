@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 abstract class ApiDto
 {
-    protected string|null $id = null;
+    public string|null $id = null;
 
     protected bool $auto = true;
 
@@ -30,6 +30,11 @@ abstract class ApiDto
             ...$this->request->request->all(),
             ...$this->request->files->all(),
         ]);
+
+        // Append ID for Edit Request
+        if ($this->request->isMethod('PUT')) {
+            $this->id = $this->request->attributes->get('id', $this->request->attributes->get('uid'));
+        }
 
         // Run Validate
         if ($this->auto) {
@@ -49,11 +54,6 @@ abstract class ApiDto
      */
     final public function validate(bool $throw = false): bool
     {
-        // Append ID for Edit Request
-        if ($this->request->isMethod('PUT')) {
-            $this->id = $this->request->attributes->get('id', $this->request->attributes->get('uid'));
-        }
-
         // Start Validated
         $this->beforeValidated();
 
@@ -80,14 +80,17 @@ abstract class ApiDto
     final public function validated(string $key = null): mixed
     {
         if (!$this->validated) {
-            $this->validated = array_diff_key(get_object_vars($this), array_flip([
-                'id',
-                'request',
-                'validator',
-                'auto',
-                'validated',
-                'constraints',
-            ]));
+            $this->validated = array_diff_key(
+                get_object_vars($this),
+                array_flip([
+                    'id',
+                    'request',
+                    'validator',
+                    'auto',
+                    'validated',
+                    'constraints',
+                ])
+            );
         }
 
         if ($key) {
@@ -132,6 +135,13 @@ abstract class ApiDto
         return $this->id;
     }
 
+    public function setId(string $id): self
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
     private function initProperties(array $fields): void
     {
         $refClass = new \ReflectionClass(static::class);
@@ -164,14 +174,16 @@ abstract class ApiDto
                         $this->$field = $data;
                     }
                 } catch (\Throwable) {
-                    $this->constraints->add(new ConstraintViolation(
-                        'The type of this value is incorrect.',
-                        'The type of this value is incorrect.',
-                        [],
-                        $this,
-                        $field,
-                        $value,
-                    ));
+                    $this->constraints->add(
+                        new ConstraintViolation(
+                            'The type of this value is incorrect.',
+                            'The type of this value is incorrect.',
+                            [],
+                            $this,
+                            $field,
+                            $value,
+                        )
+                    );
                 }
             }
         }
