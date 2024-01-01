@@ -129,7 +129,7 @@
                             <q-card>
                                 <q-card-section>
                                     <!--Dev Mode-->
-                                    <div v-if="devMode" class='q-mb-md'>
+                                    <div v-if="env === 'dev'" class='q-mb-md'>
                                         <b>Open PHP Storm: </b>
                                         <a :href="getPhpStormPath(item)">{{ item.controller }}</a>
                                     </div>
@@ -253,7 +253,7 @@
         data() {
             return {
                 leftDrawerOpen: false,
-                devMode: <?php echo json_encode($this->bag->get('kernel.environment')); ?>,
+                env: <?php echo json_encode($this->bag->get('kernel.environment')); ?>,
                 projectDir: '<?php echo $this->bag->get('kernel.project_dir'); ?>',
                 baseUrl: '<?php echo $this->bag->get('api.thor.base_url'); ?>',
                 methodColors: {
