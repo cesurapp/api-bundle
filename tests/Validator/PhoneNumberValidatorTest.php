@@ -29,12 +29,12 @@ class PhoneNumberValidatorTest extends KernelTestCase
      * @dataProvider validateProvider
      */
     public function testValidate(
-        string|null $value,
+        ?string $value,
         bool $violates,
-        array|string $type = null,
-        string $defaultRegion = null,
-        string $regionPath = null,
-        int $format = null
+        array|string|null $type = null,
+        ?string $defaultRegion = null,
+        ?string $regionPath = null,
+        ?int $format = null
     ): void {
         $constraint = new PhoneNumber(types: $type, defaultRegion: $defaultRegion, regionPath: $regionPath, format: $format);
 

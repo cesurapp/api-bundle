@@ -9,7 +9,7 @@ namespace Cesurapp\ApiBundle\Thor\Attribute;
 final class ThorResource
 {
     // @phpstan-ignore-next-line
-    public function __construct(protected array $data = [], callable|string $callback = null)
+    public function __construct(protected array $data = [], callable|string|null $callback = null)
     {
     }
 }

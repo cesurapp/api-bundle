@@ -89,7 +89,7 @@ class TypeScriptGenerator
     /**
      * Compress TS Library to TAR Format.
      */
-    public function compress(string $path = null): File
+    public function compress(?string $path = null): File
     {
         $tmpPath = $path ?? sys_get_temp_dir();
 

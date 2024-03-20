@@ -13,7 +13,7 @@ class ResourceNotFoundException extends ApiException
     public function __construct(
         string $message = 'Api Resource Not Found!',
         int $code = 424,
-        ConstraintViolationListInterface|array $errors = null
+        ConstraintViolationListInterface|array|null $errors = null
     ) {
         parent::__construct($message, $code, $errors);
     }

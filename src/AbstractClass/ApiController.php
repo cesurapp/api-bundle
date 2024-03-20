@@ -122,7 +122,7 @@ abstract class ApiController implements ServiceSubscriberInterface
      *
      * @param $message string #TranslationKey to translate the URL for
      */
-    protected function createNotFoundException(string $message = 'Not Found', \Throwable $previous = null): NotFoundHttpException
+    protected function createNotFoundException(string $message = 'Not Found', ?\Throwable $previous = null): NotFoundHttpException
     {
         return new NotFoundHttpException($message, $previous);
     }
@@ -138,7 +138,7 @@ abstract class ApiController implements ServiceSubscriberInterface
      *
      * @throws \LogicException If the Security component is not available
      */
-    protected function createAccessDeniedException(string $message = 'Access Denied.', \Throwable $previous = null): AccessDeniedException
+    protected function createAccessDeniedException(string $message = 'Access Denied.', ?\Throwable $previous = null): AccessDeniedException
     {
         return new AccessDeniedException($message, $previous);
     }

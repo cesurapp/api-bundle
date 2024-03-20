@@ -33,7 +33,7 @@ class ThorExtractor
     /**
      * Render Documentation Template.
      */
-    public function render(array $data = null): string
+    public function render(?array $data = null): string
     {
         // Template Data
         if (!$data) {
@@ -176,7 +176,7 @@ class ThorExtractor
         return $list;
     }
 
-    public static function baseClass(string|object|null $class): string|null
+    public static function baseClass(string|object|null $class): ?string
     {
         return $class ? basename(str_replace('\\', '/', is_object($class) ? get_class($class) : $class)) : null;
     }

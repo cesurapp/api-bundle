@@ -154,7 +154,7 @@ class ApiResponse
     /**
      * Enable HTTP Proxy Cache.
      */
-    public function setHTTPCache(int $lifetime = 60, array $tags = null): self
+    public function setHTTPCache(int $lifetime = 60, ?array $tags = null): self
     {
         $this->options['httpCache'] = [
             'public' => true,

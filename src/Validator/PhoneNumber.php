@@ -26,7 +26,7 @@ class PhoneNumber extends Constraint
         public ?int $format = null,
         public ?string $message = null,
         mixed $options = null,
-        array $groups = null,
+        ?array $groups = null,
         mixed $payload = null
     ) {
         $this->defaultRegion ??= 'ZZ'; // PhoneNumberUtil::UNKNOWN_REGION

@@ -24,7 +24,7 @@ trait FileDownloadTrait
     /**
      * Download Large File.
      */
-    public static function downloadFileLarge(string $filePath, string $fileName = null): StreamedResponse
+    public static function downloadFileLarge(string $filePath, ?string $fileName = null): StreamedResponse
     {
         $file = new File($filePath);
 

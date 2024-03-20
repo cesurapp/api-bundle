@@ -10,7 +10,7 @@ class UsernameValidatorTest extends KernelTestCase
     /**
      * @dataProvider validateProvider
      */
-    public function testValidate(string|null $username, int $exceptedCount = 0): void
+    public function testValidate(?string $username, int $exceptedCount = 0): void
     {
         $validator = self::getContainer()->get('validator');
         $class = new UsernameDummy();

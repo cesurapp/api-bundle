@@ -76,7 +76,7 @@ abstract class ApiDto
     /**
      * Get Validated Data.
      */
-    final public function validated(string $key = null): mixed
+    final public function validated(?string $key = null): mixed
     {
         if (!$this->validated) {
             $this->validated = array_diff_key(
