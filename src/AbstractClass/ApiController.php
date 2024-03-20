@@ -89,7 +89,7 @@ abstract class ApiController implements ServiceSubscriberInterface
     protected function isGrantedDeny(mixed $attribute, mixed $subject = null): void
     {
         if (!$this->isGranted($attribute, $subject)) {
-            throw new AccessDeniedHttpException();
+            throw new AccessDeniedHttpException('Access Denied.');
         }
     }
 

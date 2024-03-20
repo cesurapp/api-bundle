@@ -8,7 +8,8 @@ namespace Cesurapp\ApiBundle\Thor\Attribute;
 #[\Attribute(\Attribute::TARGET_FUNCTION | \Attribute::TARGET_METHOD | \Attribute::TARGET_PROPERTY)]
 final class ThorResource
 {
-    public function __construct(protected array $data = [])
+    // @phpstan-ignore-next-line
+    public function __construct(protected array $data = [], callable|string $callback = null)
     {
     }
 }

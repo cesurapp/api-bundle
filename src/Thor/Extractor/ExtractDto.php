@@ -221,9 +221,20 @@ trait ExtractDto
 
             // Api Resource
             $apiResource = $property->getAttributes(ThorResource::class);
-            if (str_contains($types, 'array') && count($apiResource)) {
-                $r = $apiResource[0]->getArguments()['data'];
-                $parameters[$property->getName()] = $r;
+            if (count($apiResource)) {
+                $r = $apiResource[0]->getArguments();
+
+                if (isset($r['callback'])) {
+                    $data = call_user_func($r['callback']);
+                    $parameters[$property->getName()] = implode('|', array_map(static fn ($v) => '?'.$v, $data));
+                } else {
+                    if (!array_is_list($r['data'])) {
+                        $parameters[$property->getName()] = $r['data'];
+                    } else {
+                        $parameters[$property->getName()] = implode('|', array_map(static fn ($v) => '?'.$v, $r['data']));
+                    }
+                }
+
                 continue;
             }
 
