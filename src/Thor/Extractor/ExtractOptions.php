@@ -27,6 +27,7 @@ trait ExtractOptions
             'isAuth' => $thorAttr['isAuth'] ?? true,
             'order' => $thorAttr['order'] ?? 0,
             'roles' => $this->extractRoles($route, $refMethod, $thorAttr),
+            'isFile' => $thorAttr['isFile'] ?? false,
         ];
     }
 

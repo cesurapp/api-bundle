@@ -30,13 +30,24 @@ import type { <?php echo ucfirst(Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor
 export default class Api {
   constructor(private client: AxiosInstance) {}
 <?php foreach ($data as $groupedRoutes) {
-    foreach ($groupedRoutes as $route) { ?>
+    foreach ($groupedRoutes as $route) {
+        if (!$route['isFile']) { ?>
 
   async <?php echo $route['shortName']; ?>(<?php echo $attrs = $helper->renderAttributes($route); ?>): Promise<AxiosResponse<<?php echo ucfirst($route['shortName']); ?>Response>> {
     return this.rq('<?php echo $route['methods'][0]; ?>', <?php echo $helper->renderEndpointPath($route['path'], $attrs); ?>, config, <?php echo str_contains($attrs, 'request') ? 'request' : 'null'; ?>)
   }
+<?php } else { ?>
+
+  async <?php echo $route['shortName']; ?>(<?php echo $attrs = $helper->renderAttributes($route); ?>): Promise<AxiosResponse> {
+    return this.rq('<?php echo $route['methods'][0]; ?>', <?php echo $helper->renderEndpointPath($route['path'], $attrs); ?>, config)
+  }
+
+  <?php echo $route['shortName']; ?>Link(<?php echo $attrs = $helper->renderAttributes($route); ?>): String {
+    return this.rl('<?php echo $route['methods'][0]; ?>', <?php echo $helper->renderEndpointPath($route['path'], $attrs); ?>, config)
+  }
 <?php }
-    } ?>
+}
+} ?>
 
   async rq(method: Method, url: string, config: AxiosRequestConfig = {}, data?: any) {
     config.method = method;
@@ -46,5 +57,12 @@ export default class Api {
     }
 
     return await this.client.request(config);
+  }
+
+  rl(method: Method, url: string, config: AxiosRequestConfig = {}) {
+    config.method = method;
+    config.url = url;
+
+    return this.client.getUri(config);
   }
 }

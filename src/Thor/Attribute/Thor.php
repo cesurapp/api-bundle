@@ -22,6 +22,7 @@ final class Thor
         protected bool $isPaginate = false,
         protected bool $isAuth = false,
         protected int $order = 0,
+        protected bool $isFile = false
     ) {
     }
 }
