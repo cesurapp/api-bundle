@@ -155,6 +155,10 @@ abstract class ApiDto
                         default => $value
                     };
 
+                    if (null === $value && $propType->allowsNull()) {
+                        $data = null;
+                    }
+
                     if (enum_exists($name)) {
                         $this->$field = $name::from($value); // @phpstan-ignore-line
                     } else {
