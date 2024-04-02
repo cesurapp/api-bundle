@@ -435,7 +435,7 @@ trait ExtractDto
                 if (class_exists($item->getName())) {
                     $types[] = $isNull ? '?string' : 'string';
                     $types[] = $isNull ? '?int' : 'int';
-                } else {
+                } elseif ('null' !== $item->getName()) {
                     $types[] = ($isNull ? '?' : '').$item->getName();
                 }
             }
