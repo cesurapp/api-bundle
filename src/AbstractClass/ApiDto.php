@@ -155,7 +155,7 @@ abstract class ApiDto
                         default => $value
                     };
 
-                    if (null === $value && $propType->allowsNull()) {
+                    if ((null === $value || '' === $value) && $propType->allowsNull()) {
                         $data = null;
                     }
 
