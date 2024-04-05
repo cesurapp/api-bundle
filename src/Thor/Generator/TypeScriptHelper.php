@@ -72,6 +72,8 @@ class TypeScriptHelper
                 }
                 if ($r['nullable']) {
                     $isNull = true;
+                } else {
+                    $allNull = false;
                 }
                 if (array_is_list($value)) {
                     $value = "[\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).']';
