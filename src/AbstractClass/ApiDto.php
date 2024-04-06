@@ -147,8 +147,8 @@ abstract class ApiDto
 
                 try {
                     $data = match ($name) {
-                        'DateTime' => \DateTime::createFromFormat(DATE_ATOM, $value),
-                        'DateTimeImmutable' => \DateTimeImmutable::createFromFormat(DATE_ATOM, $value),
+                        'DateTime' => new \DateTime($value),
+                        'DateTimeImmutable' => new \DateTimeImmutable($value),
                         'bool' => (bool) $value,
                         'int' => (int) $value,
                         'string' => (string) $value,
