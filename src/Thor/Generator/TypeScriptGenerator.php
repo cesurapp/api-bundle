@@ -230,6 +230,12 @@ class TypeScriptGenerator
                 }
             });
 
+            foreach ($data as $index => $val) {
+                if (is_array($val)) {
+                    $data[$index] = [...$val, '[key:string]' => 'any'];
+                }
+            }
+
             $name = sprintf('%s.ts', ucfirst($namespace));
             file_put_contents($this->pathResource."/{$name}", $this->renderTemplate('resource.ts.php', [
                 'namespace' => $namespace,
