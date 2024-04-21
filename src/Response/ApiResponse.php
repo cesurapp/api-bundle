@@ -114,11 +114,12 @@ class ApiResponse
         return $this->options['pager'] ?? null;
     }
 
-    public function setPaginate(?int $max = 20, bool $total = false, bool $fetchJoin = true, bool $cursor = false): self
+    public function setPaginate(?int $max = 20, bool $total = false, bool $fetchJoin = true, bool $cursor = false, int $maxQuery = 100): self
     {
         $this->options['pager'] = [
             'type' => $cursor ? 'Cursor' : 'Offset',
             'max' => $max,
+            'maxQuery' => $maxQuery,
             'total' => $total,
             'fetchJoin' => $fetchJoin,
         ];
@@ -256,17 +257,21 @@ class ApiResponse
     {
         $config = $this->getPaginate();
         $page = $request->query->getInt('page', 1);
+        $max = $request->query->getInt('max', (int) $config['max']);
+        if ($max > $config['maxQuery']) {
+            $max = $config['maxQuery'];
+        }
 
         // Paginate
-        $this->getQuery()?->setFirstResult(($page - 1) * $config['max'])->setMaxResults($config['max'] + 1);
+        $this->getQuery()?->setFirstResult(($page - 1) * $max)->setMaxResults($max + 1);
         $paginator = new Paginator($this->getQuery(), $config['fetchJoin']);
         /** @var \ArrayIterator $iterator */
         $iterator = $paginator->getIterator();
 
         $pager = [
-            'max' => $config['max'],
+            'max' => $max,
             'prev' => $page > 1 ? $page - 1 : null,
-            'next' => $iterator->count() > $config['max'] ? $page + 1 : null,
+            'next' => $iterator->count() > $max ? $page + 1 : null,
             'current' => $page,
         ];
 
@@ -275,7 +280,7 @@ class ApiResponse
         }
 
         // Append Pager Data
-        $this->addData('data', array_slice((array) $iterator, 0, $config['max']), true);
+        $this->addData('data', array_slice((array) $iterator, 0, $max), true);
         $this->addData('pager', $pager, true);
     }
 }

@@ -122,6 +122,7 @@ trait ExtractDto
         // Append Paginator Query
         if (!empty($attrThor['isPaginate'])) {
             $attr['page'] = '?int';
+            $attr['max'] = '?int';
         }
 
         // Append Doctrine Filter & Sort
