@@ -148,7 +148,13 @@ class ThorExtractor
 
         foreach ($this->resourceLocator->all() as $class => $type) {
             $resource = $this->resourceLocator->get($class)->toResource();
-            $resources[ThorExtractor::baseClass($class)] = array_combine(array_keys($resource), array_column($resource, 'type'));
+            $newRes = [];
+            foreach ($resource as $key => $data) {
+                if (isset($data['type'])) {
+                    $newRes[$key] = $data['type'];
+                }
+            }
+            $resources[ThorExtractor::baseClass($class)] = $newRes;
         }
 
         return $resources;
