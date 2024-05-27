@@ -1,10 +1,10 @@
 parameters:
     level: 6
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     paths:
         - src
     excludePaths:
         - 'src/Thor/Template/*'
-#    ignoreErrors:
-#        - '#id is never written, only read#'
+    ignoreErrors:
+        - identifier: missingType.iterableValue
+        - identifier: missingType.generics
+        #- '#id is never written, only read#'
