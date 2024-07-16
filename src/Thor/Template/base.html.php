@@ -107,7 +107,7 @@
         <!--Content-->
         <q-page-container>
             <div class="q-px-md q-pb-lg">
-                <div :key="title" v-for="(stack, title) in docData">
+                <div :key="title" v-for="(stack, title) in getDocOrdered">
                     <h5 :id="toSlugify(title)" class="text-h6 text-weight-regular q-mx-none q-mb-sm q-mt-md header">{{ title }}</h5>
                     <q-list bordered class="rounded-borders">
                         <q-expansion-item group="items" :key="title + index" v-for="(item, index) in stack" :header-class="$q.dark.isActive ? 'bg-grey-9' : 'bg-white'" class='main-expand'>
@@ -291,6 +291,17 @@
 
                 return routeGroup;
             },
+            getDocOrdered() {
+                let data = {};
+
+                Object.values(this.getSidebarTitles).forEach((routeGroups) => {
+                    Object.values(routeGroups).forEach((key) => {
+                        data[key] = this.docData[key]
+                    })
+                })
+
+                return data
+            }
         },
         methods:{
             toggleDark(status) {
