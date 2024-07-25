@@ -123,6 +123,12 @@ abstract class ApiDto
 
     /**
      * Validated Data to Object Setter.
+     *
+     * @template T
+     *
+     * @param T $object
+     *
+     * @return T
      */
     public function initObject(mixed $object = null): mixed
     {

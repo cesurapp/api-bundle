@@ -131,7 +131,7 @@ Export is automatically enabled for all tables.
 use \Cesurapp\ApiBundle\Response\ApiResourceInterface;
 
 class UserResource implements ApiResourceInterface {
-    public function toArray(object $item, mixed $optional = null): array {
+    public function toArray(mixed $item, mixed $optional = null): array {
         return [
             'id' => $object->getId(),
             'name' => $object->getName()

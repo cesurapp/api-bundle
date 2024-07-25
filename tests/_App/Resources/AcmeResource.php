@@ -6,7 +6,7 @@ use Cesurapp\ApiBundle\Response\ApiResourceInterface;
 
 class AcmeResource implements ApiResourceInterface
 {
-    public function toArray(object $item, mixed $optional = null): array
+    public function toArray(mixed $item, mixed $optional = null): array
     {
         return [
             'acme' => 'test',
