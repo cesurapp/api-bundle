@@ -15,6 +15,8 @@ class AcmeResource implements ApiResourceInterface
 
     public function toResource(): array
     {
-        return [];
+        return [
+            'acme' => 'string',
+        ];
     }
 }

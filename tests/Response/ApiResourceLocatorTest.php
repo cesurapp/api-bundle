@@ -12,6 +12,6 @@ class ApiResourceLocatorTest extends KernelTestCase
     {
         $locator = self::getContainer()->get(ApiResourceLocator::class);
         $this->assertInstanceOf(AcmeResource::class, $locator->get(AcmeResource::class));
-        $this->assertSame([], $locator->get(AcmeResource::class)->toResource());
+        $this->assertSame(['acme' => 'string'], $locator->get(AcmeResource::class)->toResource());
     }
 }

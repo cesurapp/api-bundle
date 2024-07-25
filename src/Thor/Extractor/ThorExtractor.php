@@ -43,7 +43,7 @@ class ThorExtractor
         // Resource Extractor
         array_walk_recursive($data, static function (&$val) use ($data) {
             if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
-                $val = $data['_resource'][ThorExtractor::baseClass($val) .':'. ThorExtractor::basePath($val)];
+                $val = $data['_resource'][ThorExtractor::baseClass($val).':'.ThorExtractor::basePath($val)];
             }
         });
 
@@ -154,7 +154,7 @@ class ThorExtractor
                     $newRes[$key] = $data['type'];
                 }
             }
-            $resources[ThorExtractor::baseClass($class) .':'. ThorExtractor::basePath($class)] = $newRes;
+            $resources[ThorExtractor::baseClass($class).':'.ThorExtractor::basePath($class)] = $newRes;
         }
 
         return $resources;
@@ -187,7 +187,7 @@ class ThorExtractor
         return $class ? basename(str_replace('\\', '/', is_object($class) ? get_class($class) : $class)) : null;
     }
 
-    public static function basePath(string|null $class): ?string
+    public static function basePath(?string $class): ?string
     {
         if (! $class) {
             return null;
