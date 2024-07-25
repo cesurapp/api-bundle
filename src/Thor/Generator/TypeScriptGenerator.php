@@ -244,8 +244,8 @@ class TypeScriptGenerator
             $name = sprintf('%s.ts', ucfirst($namespace));
             $path = sprintf('%s/%s/resource/%s', $this->path, $routeGroup, $name);
 
-            if (!mkdir($concurrentDirectory = dirname($path), 0777, true) && !is_dir($concurrentDirectory)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            if (!file_exists($p = dirname($path)) && !mkdir($p, 0777, true) && !is_dir($p)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $p));
             }
 
             file_put_contents($path, $this->renderTemplate('resource.ts.php', [
