@@ -43,7 +43,7 @@ class ThorExtractor
         // Resource Extractor
         array_walk_recursive($data, static function (&$val) use ($data) {
             if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
-                $val = $data['_resource'][ThorExtractor::baseClass($val)];
+                $val = $data['_resource'][ThorExtractor::baseClass($val) .':'. ThorExtractor::basePath($val)];
             }
         });
 
@@ -154,7 +154,7 @@ class ThorExtractor
                     $newRes[$key] = $data['type'];
                 }
             }
-            $resources[ThorExtractor::baseClass($class)] = $newRes;
+            $resources[ThorExtractor::baseClass($class) .':'. ThorExtractor::basePath($class)] = $newRes;
         }
 
         return $resources;
@@ -185,5 +185,17 @@ class ThorExtractor
     public static function baseClass(string|object|null $class): ?string
     {
         return $class ? basename(str_replace('\\', '/', is_object($class) ? get_class($class) : $class)) : null;
+    }
+
+    public static function basePath(string|null $class): ?string
+    {
+        if (! $class) {
+            return null;
+        }
+
+        $mainGroup = explode('\\', preg_replace('/App\\\/', '', $class));
+        $mainGroup = strtolower(str_replace('_', '', $mainGroup[0] ?? ''));
+
+        return $mainGroup;
     }
 }

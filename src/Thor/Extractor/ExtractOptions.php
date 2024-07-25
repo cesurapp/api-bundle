@@ -16,7 +16,7 @@ trait ExtractOptions
             'path' => $route->getPath(),
             'methods' => $route->getMethods() ?: ['GET'],
             'routeGroup' => $mainGroup,
-            'shortName' => $mainGroup.str_replace('Controller', '', $refController->getShortName()).ucfirst($refMethod->getShortName()),
+            'shortName' => str_replace('Controller', '', $refController->getShortName()).ucfirst($refMethod->getShortName()),
             'shortController' => ucfirst(str_replace('Controller', '', $refController->getShortName())),
             'stack' => explode('|', $thorAttr['stack'] ?? '')[0],
             'stackOrder' => explode('|', $thorAttr['stack'] ?? '')[1] ?? null,

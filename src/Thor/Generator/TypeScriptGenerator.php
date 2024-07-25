@@ -10,41 +10,35 @@ use Symfony\Component\HttpFoundation\File\File;
 class TypeScriptGenerator
 {
     private string $path;
-    private string $pathResponse;
-    private string $pathRequest;
-    private string $pathQuery;
-    private string $pathTable;
-    private string $pathEnum;
-    private string $pathResource;
     private TypeScriptHelper $helper;
+    private array $routeGroups = [];
 
     public function __construct(private readonly array $data)
     {
+        $this->routeGroups = array_map(
+            fn($arr) => array_column($arr, 'routeGroup'),
+            array_filter($this->data, static fn ($k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY)
+        );
+        $this->routeGroups = array_unique(array_merge(...array_values($this->routeGroups)));
+
         // Create Template Helper
         $this->helper = new TypeScriptHelper();
 
         // Generate Path
         $this->path = sys_get_temp_dir().uniqid('', false);
-        $this->pathResponse = $this->path.'/Response';
-        $this->pathRequest = $this->path.'/Request';
-        $this->pathQuery = $this->path.'/Query';
-        $this->pathTable = $this->path.'/Table';
-        $this->pathEnum = $this->path.'/Enum';
-        $this->pathResource = $this->path.'/Resource';
+        foreach ($this->routeGroups as $route) {
+            foreach (['response', 'request', 'query', 'table', 'resource'] as $dir) {
+                $p = sprintf('%s/%s/%s', $this->path, $route, $dir);
+                if (!mkdir($p, 0777, true) && !is_dir($p)) {
+                    throw new \RuntimeException(sprintf('Directory "%s" was not created', $p));
+                }
+            }
+        }
 
-        foreach (
-            [
-                $this->path,
-                $this->pathResponse,
-                $this->pathRequest,
-                $this->pathQuery,
-                $this->pathTable,
-                $this->pathEnum,
-                $this->pathResource,
-            ] as $dir
-        ) {
-            if (!mkdir($dir, 0777, true) && !is_dir($dir)) {
-                throw new \RuntimeException(sprintf('Directory "%s" was not created', $dir));
+        foreach (['enum'] as $dir) {
+            $p = sprintf('%s/%s', $this->path, $dir);
+            if (!mkdir($p, 0777, true) && !is_dir($p)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $p));
             }
         }
     }
@@ -73,15 +67,25 @@ class TypeScriptGenerator
             }
         }
 
+        // Render Route Groups
+        foreach ($this->routeGroups as $routeGroup) {
+            file_put_contents($this->path."/$routeGroup.ts", $this->renderTemplate('routeGroup.ts.php', [
+                'data' => array_map(function ($data) use ($routeGroup) {
+                    return array_filter($data, fn($item) => $item['routeGroup'] === $routeGroup);
+                }, array_filter($this->data, static fn ($k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY)),
+                'routeGroup' => $routeGroup
+            ]));
+        }
         // Render Index
         file_put_contents($this->path.'/index.ts', $this->renderTemplate('index.ts.php', [
-            'data' => array_filter($this->data, static fn ($k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_KEY),
+            'routeGroups' => $this->routeGroups,
         ]));
 
         // Render Dependency
         file_put_contents($this->path.'/flatten.ts', $this->renderTemplate('flatten.ts.php', [
             'data' => $this->data,
         ]));
+        file_put_contents($this->path.'/tsconfig.json', $this->renderTemplate('tsconfig.json.php', []));
 
         return $this;
     }
@@ -143,14 +147,14 @@ class TypeScriptGenerator
         }
 
         $resources = [];
-        array_walk_recursive($route, static function ($val) use (&$resources) {
+        array_walk_recursive($route, static function ($val) use (&$resources, $route) {
             if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
-                $resources[] = ThorExtractor::baseClass($val);
+                $resources[] = sprintf('%s/resource/%s', ThorExtractor::basePath($val), ThorExtractor::baseClass($val));
             }
         });
 
         $name = sprintf('%sResponse.ts', ucfirst($route['shortName']));
-        file_put_contents($this->pathResponse."/{$name}", $this->renderTemplate('response.ts.php', [
+        file_put_contents(sprintf('%s/%s/response/%s', $this->path,$route['routeGroup'],$name), $this->renderTemplate('response.ts.php', [
             'data' => $route,
             'resources' => $resources,
         ]));
@@ -166,7 +170,7 @@ class TypeScriptGenerator
         }
 
         $name = sprintf('%sRequest.ts', ucfirst($route['shortName']));
-        file_put_contents($this->pathRequest."/{$name}", $this->renderTemplate('request.ts.php', [
+        file_put_contents(sprintf('%s/%s/request/%s', $this->path,$route['routeGroup'],$name), $this->renderTemplate('request.ts.php', [
             'data' => $route,
         ]));
     }
@@ -181,7 +185,7 @@ class TypeScriptGenerator
         }
 
         $name = sprintf('%sQuery.ts', ucfirst($route['shortName']));
-        file_put_contents($this->pathQuery."/{$name}", $this->renderTemplate('query.ts.php', [
+        file_put_contents(sprintf('%s/%s/query/%s', $this->path,$route['routeGroup'],$name), $this->renderTemplate('query.ts.php', [
             'data' => $route,
         ]));
     }
@@ -196,7 +200,7 @@ class TypeScriptGenerator
         }
 
         $name = sprintf('%sTable.ts', ucfirst($route['shortName']));
-        file_put_contents($this->pathTable."/{$name}", $this->renderTemplate('table.ts.php', [
+        file_put_contents(sprintf('%s/%s/table/%s', $this->path,$route['routeGroup'],$name), $this->renderTemplate('table.ts.php', [
             'data' => $route,
         ]));
     }
@@ -210,7 +214,7 @@ class TypeScriptGenerator
             $file = 'Permission' === $namespace ? 'permission.ts.php' : 'enum.ts.php';
             $name = sprintf('%s.ts', ucfirst($namespace));
             $enumData = is_array($enumData) ? $enumData : $enumData::cases();
-            file_put_contents($this->pathEnum."/{$name}", $this->renderTemplate($file, [
+            file_put_contents(sprintf('%s/enum/%s', $this->path,$name), $this->renderTemplate($file, [
                 'namespace' => $namespace,
                 'data' => $enumData,
             ]));
@@ -226,7 +230,7 @@ class TypeScriptGenerator
             $resources = [];
             array_walk_recursive($data, static function ($val) use (&$resources) {
                 if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
-                    $resources[] = ThorExtractor::baseClass($val);
+                    $resources[] = sprintf('%s/resource/%s', ThorExtractor::basePath($val), ThorExtractor::baseClass($val));
                 }
             });
 
@@ -236,8 +240,9 @@ class TypeScriptGenerator
                 }
             }
 
+            [$namespace, $routeGroup] = explode(':', $namespace);
             $name = sprintf('%s.ts', ucfirst($namespace));
-            file_put_contents($this->pathResource."/{$name}", $this->renderTemplate('resource.ts.php', [
+            file_put_contents(sprintf('%s/%s/resource/%s', $this->path,$routeGroup,$name), $this->renderTemplate('resource.ts.php', [
                 'namespace' => $namespace,
                 'data' => $data,
                 'resources' => $resources,
