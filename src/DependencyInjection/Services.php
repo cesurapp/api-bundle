@@ -15,7 +15,7 @@ return static function (ContainerConfigurator $container) {
     $services->load('Cesurapp\\ApiBundle\\Validator\\', '../Validator/');
 
     // Argument Resolver
-    $services->set(DtoResolver::class)->tag('controller.argument_value_resolver', ['priority' => 50]);
+    $services->set(DtoResolver::class)->tag('controller.argument_value_resolver', ['priority' => 19]);
 
     // Thor
     $services->load('Cesurapp\\ApiBundle\\Thor\\Command\\', '../Thor/Command/');
