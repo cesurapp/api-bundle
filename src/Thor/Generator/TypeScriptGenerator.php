@@ -85,6 +85,7 @@ class TypeScriptGenerator
         file_put_contents($this->path.'/flatten.ts', $this->renderTemplate('flatten.ts.php', [
             'data' => $this->data,
         ]));
+        file_put_contents($this->path.'/package.json', $this->renderTemplate('package.json.php', []));
         file_put_contents($this->path.'/tsconfig.json', $this->renderTemplate('tsconfig.json.php', []));
 
         return $this;

@@ -2,7 +2,7 @@
 <?php if (count($resources)) {
     echo PHP_EOL;
 } ?>
-<?php echo implode("\n", array_map(fn ($v) => sprintf("import type { %s } from '%s';", basename($v), $v), $resources)); ?>
+<?php echo implode("\n", array_map(fn ($v) => sprintf("import type { %s } from '@api/%s';", basename($v), $v), $resources)); ?>
 <?php if (count($resources)) {
     echo PHP_EOL;
 } ?>

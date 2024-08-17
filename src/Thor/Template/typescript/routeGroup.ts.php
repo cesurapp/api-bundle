@@ -4,6 +4,7 @@
 /* eslint-disable no-useless-constructor */
 
 import type { AxiosInstance, AxiosRequestConfig, Method, AxiosResponse } from 'axios';
+// @ts-ignore
 import { toQueryString } from './flatten';
 
 <?php foreach ($data as $groupedRoutes) {
@@ -20,7 +21,7 @@ import type { <?php echo ucfirst($route['shortName']); ?>Query } from './<?php e
 <?php if (isset($route['routeAttr'])) {
     foreach ($route['routeAttr'] as $name => $class) { ?>
 <?php if (enum_exists($class)) { ?>
-import type { <?php echo ucfirst(Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?> } from 'enum/<?php echo ucfirst(Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?>';
+import type { <?php echo ucfirst(Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?> } from '@api/enum/<?php echo ucfirst(Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor::baseClass($class)); ?>';
 <?php } ?>
 <?php }
     } ?>
