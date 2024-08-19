@@ -31,7 +31,11 @@ class UniqueEntityValidator extends ConstraintValidator
         $criteria = Criteria::create();
         foreach ($fields as $columnName => $field) {
             if (!is_numeric($columnName)) {
-                $criteria->andWhere(Criteria::expr()->eq($columnName, $this->context->getObject()->{$field}));
+                if (is_array($field)) {
+                    $criteria->andWhere(Criteria::expr()->in($columnName, $field));
+                } else {
+                    $criteria->andWhere(Criteria::expr()->eq($columnName, $this->context->getObject()->{$field}));
+                }
             } else {
                 $criteria->andWhere(Criteria::expr()->eq($field, $this->context->getObject()->{$field}));
             }
