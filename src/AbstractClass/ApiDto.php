@@ -161,8 +161,8 @@ abstract class ApiDto
                         default => $value
                     };
 
-                    if ((null === $value || '' === $value) && $propType->allowsNull()) {
-                        $data = null;
+                    if (null === $value && !$propType->allowsNull()) {
+                        continue;
                     }
 
                     if (enum_exists($name)) {
