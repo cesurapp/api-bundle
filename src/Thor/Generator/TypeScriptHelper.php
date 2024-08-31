@@ -66,7 +66,7 @@ class TypeScriptHelper
             $isNull = false;
 
             if (is_array($value)) {
-                $r = $this->renderVariables($value, $sub + 1, true);
+                $r = $this->renderVariables($value, (array_is_list($value)) ? $sub : $sub + 1, true);
                 if (!$r['items']) {
                     continue;
                 }
@@ -76,7 +76,7 @@ class TypeScriptHelper
                     $allNull = false;
                 }
                 if (array_is_list($value)) {
-                    $value = "[\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).']';
+                    $value = trim(implode(",\n", $r['items']).'[]');
                 } else {
                     $value = "{\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).'}';
                 }

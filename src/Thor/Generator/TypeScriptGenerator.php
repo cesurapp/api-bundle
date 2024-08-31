@@ -236,7 +236,7 @@ class TypeScriptGenerator
             });
 
             foreach ($data as $index => $val) {
-                if (is_array($val)) {
+                if (is_array($val) && !array_is_list($val)) {
                     $data[$index] = [...$val, '[key:string]' => 'any'];
                 }
             }
