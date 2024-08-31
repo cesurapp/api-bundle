@@ -13,7 +13,7 @@ class ValidationException extends ApiException
     public function __construct(
         string $message = 'Validation failed',
         int $code = 422,
-        protected array|ConstraintViolationListInterface|null $errors = null
+        protected array|ConstraintViolationListInterface|null $errors = null,
     ) {
         if ($errors instanceof ConstraintViolationListInterface) {
             $errors = $this->parseErrors($errors);

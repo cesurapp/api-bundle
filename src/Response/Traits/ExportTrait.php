@@ -36,7 +36,7 @@ trait ExportTrait
         // Writer
         $writer = match ($request->get('export')) {
             'xls' => new XlsWriter('php://output'),
-            default => new CsvWriter('php://output')
+            default => new CsvWriter('php://output'),
         };
 
         // Response

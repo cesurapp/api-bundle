@@ -16,7 +16,7 @@ trait FileDownloadTrait
     public static function downloadFile(
         \SplFileInfo|string $path,
         string $fileName = '',
-        string $disposition = ResponseHeaderBag::DISPOSITION_ATTACHMENT
+        string $disposition = ResponseHeaderBag::DISPOSITION_ATTACHMENT,
     ): BinaryFileResponse {
         return (new BinaryFileResponse($path))->setContentDisposition($disposition, $fileName);
     }

@@ -13,7 +13,7 @@ class EntityExists extends Constraint
         public string $message = 'No such value was found!',
         mixed $options = null,
         ?array $groups = null,
-        mixed $payload = null
+        mixed $payload = null,
     ) {
         parent::__construct($options, $groups, $payload);
     }

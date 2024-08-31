@@ -19,7 +19,7 @@ class DoctrineORMQuerySourceIterator extends AbstractPropertySourceIterator
         array $fields,
         private readonly array $fieldTemplate,
         string $dateTimeFormat = 'r',
-        private readonly int $batchSize = 100
+        private readonly int $batchSize = 100,
     ) {
         $this->query = clone $query;
         $this->query->setParameters($query->getParameters());

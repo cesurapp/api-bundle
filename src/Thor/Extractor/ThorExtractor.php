@@ -23,7 +23,7 @@ class ThorExtractor
         private readonly RouterInterface $router,
         private readonly ParameterBagInterface $bag,
         private readonly ApiResourceLocator $resourceLocator,
-        private readonly EventDispatcherInterface $dispatcher
+        private readonly EventDispatcherInterface $dispatcher,
     ) {
         $this->custom = [
             '_enums' => [],

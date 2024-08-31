@@ -154,7 +154,7 @@ class TypeScriptHelper
             'object' => 'object',
             '1' => 'true',
             '0' => 'false',
-            default => "'$type'"
+            default => "'$type'",
         };
     }
 

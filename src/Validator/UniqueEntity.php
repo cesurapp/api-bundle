@@ -15,7 +15,7 @@ class UniqueEntity extends Constraint
         public string $message = 'This value is already used.',
         mixed $options = null,
         ?array $groups = null,
-        mixed $payload = null
+        mixed $payload = null,
     ) {
         parent::__construct($options, $groups, $payload);
     }

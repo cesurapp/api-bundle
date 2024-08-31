@@ -12,7 +12,7 @@ abstract class ApiException extends \Exception
     public function __construct(
         string $message = '',
         int $code = 0,
-        protected array|ConstraintViolationListInterface|null $errors = null
+        protected array|ConstraintViolationListInterface|null $errors = null,
     ) {
         parent::__construct($message, $code);
     }

@@ -158,7 +158,7 @@ abstract class ApiDto
                         'bool' => (bool) $value,
                         'int' => (int) $value,
                         'string' => (string) $value,
-                        default => $value
+                        default => $value,
                     };
 
                     if (null === $value && !$propType->allowsNull()) {

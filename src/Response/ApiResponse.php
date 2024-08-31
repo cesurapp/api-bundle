@@ -204,7 +204,7 @@ class ApiResponse
     public function processResponse(
         Request $request,
         ApiResourceLocator $resLocator,
-        TranslatorInterface $trans
+        TranslatorInterface $trans,
     ): JsonResponse|StreamedResponse {
         if ($this->resource) {
             $res = $resLocator->getResource($this->resource);

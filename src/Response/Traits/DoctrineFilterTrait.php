@@ -65,7 +65,7 @@ trait DoctrineFilterTrait
         // Generate Direction
         $direction = match (strtoupper($request->query->get('sort', ''))) {
             'ASC' => 'ASC',
-            default => 'DESC'
+            default => 'DESC',
         };
 
         if (is_callable($resource['sortable_field'] ?? '')) {
