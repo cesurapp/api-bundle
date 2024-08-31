@@ -21,7 +21,10 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $dispatcher = new EventDispatcher();
         $listener = new GlobalExceptionHandler(
             $this->createMock(TranslatorInterface::class),
-            new ParameterBag(['api.exception_converter' => true])
+            new ParameterBag([
+                'api.exception_converter' => true,
+                'kernel.environment' => 'test',
+            ])
         );
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
@@ -60,7 +63,10 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $dispatcher = new EventDispatcher();
         $listener = new GlobalExceptionHandler(
             $this->createMock(TranslatorInterface::class),
-            new ParameterBag(['api.exception_converter' => true])
+            new ParameterBag([
+                'api.exception_converter' => true,
+                'kernel.environment' => 'test',
+            ])
         );
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 

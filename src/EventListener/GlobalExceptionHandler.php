@@ -25,6 +25,19 @@ readonly class GlobalExceptionHandler implements EventSubscriberInterface
             return;
         }
 
+        if ('test' === $this->bag->get('kernel.environment') && $event->getRequest()->server->has('dd')) {
+            $throwable = $event->getThrowable();
+            $event->setResponse(new JsonResponse([
+                'message' => $throwable->getMessage(),
+                'code' => $throwable->getCode(),
+                'file' => $throwable->getFile(),
+                'line' => $throwable->getLine(),
+                'trace' => $throwable->getTrace(),
+            ], 500));
+
+            return;
+        }
+
         // Create Exception Message
         $exception = $event->getThrowable();
         $code = method_exists($exception, 'getStatusCode') ? $exception->getStatusCode() : $exception->getCode();
