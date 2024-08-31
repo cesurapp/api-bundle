@@ -76,7 +76,12 @@ class TypeScriptHelper
                     $allNull = false;
                 }
                 if (array_is_list($value)) {
-                    $value = trim(implode(",\n", $r['items']).'[]');
+                    $merge = implode(",\n", $r['items']);
+                    if (preg_match('/^ *{/', $merge)) {
+                        $value = trim($merge).'[]';
+                    } else {
+                        $value = "[\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).']';
+                    }
                 } else {
                     $value = "{\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).'}';
                 }

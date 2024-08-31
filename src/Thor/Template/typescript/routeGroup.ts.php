@@ -43,7 +43,7 @@ export default class <?php echo ucfirst($route['routeGroup']); ?> {
     return this.rq('<?php echo $route['methods'][0]; ?>', <?php echo $helper->renderEndpointPath($route['path'], $attrs); ?>, config)
   }
 
-  <?php echo $route['shortName']; ?>Link(<?php echo $attrs = $helper->renderAttributes($route); ?>): String {
+  <?php echo $route['shortName']; ?>Link(<?php echo $attrs = $helper->renderAttributes($route); ?>): string {
     return this.rl('<?php echo $route['methods'][0]; ?>', <?php echo $helper->renderEndpointPath($route['path'], $attrs); ?>, config)
   }
 <?php }
