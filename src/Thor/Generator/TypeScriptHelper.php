@@ -66,7 +66,7 @@ class TypeScriptHelper
             $isNull = false;
 
             if (is_array($value)) {
-                $r = $this->renderVariables($value, (array_is_list($value)) ? $sub : $sub + 1, true);
+                $r = $this->renderVariables($value, $sub + 1, true);
                 if (!$r['items']) {
                     continue;
                 }
