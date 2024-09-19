@@ -10,7 +10,17 @@ foreach ($routeGroups as $group) {
 }
 ?>
 
-export default class Api {
+export interface ApiInstance {
+<?php foreach ($routeGroups as $group) {
+    echo sprintf('    %s: %s;', $group, ucfirst($group)).PHP_EOL;
+} ?>
+}
+
+export interface ApiConstructor {
+    new (client: AxiosInstance): ApiInstance;
+}
+
+export default class Api implements ApiInstance {
 <?php foreach ($routeGroups as $group) {
     echo sprintf('    public %s: %s;', $group, ucfirst($group)).PHP_EOL;
 } ?>
