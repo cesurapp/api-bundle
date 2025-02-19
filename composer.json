@@ -22,7 +22,7 @@
         "symfony/translation": "^7.0",
         "symfony/filesystem": "^7.0",
         "symfony/mime": "^7.0",
-        "doctrine/orm": "^2.15",
+        "doctrine/orm": "^3.3.0",
         "doctrine/doctrine-bundle": "^2.10",
         "sonata-project/exporter": "^3.3",
         "giggsey/libphonenumber-for-php-lite": "^8.13"
@@ -30,7 +30,7 @@
     "require-dev": {
         "php-cs-fixer/shim": "^3.40",
         "symfony/test-pack": "^1.1",
-        "phpstan/phpstan": "^1.10"
+        "phpstan/phpstan": "^2.1.5"
     },
     "autoload": {
         "psr-4": {

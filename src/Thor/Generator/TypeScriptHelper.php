@@ -101,7 +101,7 @@ class TypeScriptHelper
                 );
             }
 
-            if (is_array($attributes) && is_int($key)) {
+            if (is_int($key)) {
                 $attrs[] = str_repeat('  ', $sub).$value;
             } else {
                 if (str_contains($key, '.')) {

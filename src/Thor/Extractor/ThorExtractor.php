@@ -194,7 +194,7 @@ class ThorExtractor
         }
 
         $mainGroup = explode('\\', preg_replace('/App\\\/', '', $class));
-        $mainGroup = strtolower(str_replace('_', '', $mainGroup[0] ?? ''));
+        $mainGroup = strtolower(str_replace('_', '', $mainGroup[0]));
 
         return $mainGroup;
     }

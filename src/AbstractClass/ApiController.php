@@ -134,8 +134,6 @@ abstract class ApiController implements ServiceSubscriberInterface
      * throw $this->createAccessDeniedException('Unable to access this page!');
      *
      * @param $message string #TranslationKey to translate the URL for
-     *
-     * @throws \LogicException If the Security component is not available
      */
     protected function createAccessDeniedException(string $message = 'Access Denied.', ?\Throwable $previous = null): AccessDeniedHttpException
     {

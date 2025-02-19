@@ -10,7 +10,7 @@ trait ExtractOptions
     public function extractOptions(\ReflectionClass $refController, \ReflectionMethod $refMethod, Route $route, array $thorAttr): array
     {
         $mainGroup = explode('/', ltrim($route->getPath(), '/'));
-        $mainGroup = $mainGroup[1] ?? $mainGroup[0] ?? '';
+        $mainGroup = $mainGroup[1] ?? $mainGroup[0];
 
         return [
             'path' => $route->getPath(),
