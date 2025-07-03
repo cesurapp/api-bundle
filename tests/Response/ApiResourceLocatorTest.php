@@ -8,6 +8,12 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ApiResourceLocatorTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testValidationExceptionResponse(): void
     {
         $locator = self::getContainer()->get(ApiResourceLocator::class);

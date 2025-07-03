@@ -11,6 +11,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ApiDtoTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        restore_exception_handler();
+    }
+
     public function testDtoInvalidRequest(): void
     {
         self::bootKernel();

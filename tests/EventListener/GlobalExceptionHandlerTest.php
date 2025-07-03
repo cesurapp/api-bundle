@@ -11,11 +11,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class GlobalExceptionHandlerTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testExceptionResponse(): void
     {
         $dispatcher = new EventDispatcher();
@@ -44,14 +49,16 @@ class GlobalExceptionHandlerTest extends KernelTestCase
 
     public function testExceptionResponseContainer(): void
     {
-        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $container = self::getContainer();
+        $handler = $container->get(GlobalExceptionHandler::class);
         $event = new ExceptionEvent(
             $this->createMock(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new NotFoundHttpException(),
         );
-        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $handler->onKernelException($event);
+
         $this->assertEquals(
             '{"type":"NotFoundHttpException","code":404,"message":""}',
             $event->getResponse()->getContent()
@@ -86,14 +93,17 @@ class GlobalExceptionHandlerTest extends KernelTestCase
 
     public function testValidationExceptionResponseContainer(): void
     {
-        $dispatcher = self::getContainer()->get('event_dispatcher');
+        $container = self::getContainer();
+        $handler = $container->get(GlobalExceptionHandler::class);
+
         $event = new ExceptionEvent(
             $this->createMock(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new ValidationException(),
         );
-        $dispatcher->dispatch($event, KernelEvents::EXCEPTION);
+        $handler->onKernelException($event);
+
         $this->assertEquals(
             '{"type":"ValidationException","code":422,"message":"Validation failed","errors":null}',
             $event->getResponse()->getContent()

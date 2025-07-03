@@ -8,6 +8,12 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ApiDocumentationTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testViewDocumentation(): void
     {
         self::bootKernel();

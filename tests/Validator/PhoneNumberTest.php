@@ -4,6 +4,7 @@ namespace Cesurapp\ApiBundle\Tests\Validator;
 
 use Cesurapp\ApiBundle\Validator\PhoneNumber;
 use libphonenumber\PhoneNumberFormat;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class PhoneNumberTest extends KernelTestCase
@@ -18,9 +19,7 @@ class PhoneNumberTest extends KernelTestCase
         $this->assertObjectHasProperty('regionPath', $phoneNumber);
     }
 
-    /**
-     * @dataProvider messageProvider
-     */
+    #[DataProvider('messageProvider')]
     public function testMessage(?string $message, array|string|null $type, ?int $format, string $expectedMessage): void
     {
         $phoneNumber = new PhoneNumber(types: $type, format: $format, message: $message);
@@ -36,7 +35,7 @@ class PhoneNumberTest extends KernelTestCase
      *
      * @return iterable<array{?string, string|string[]|null, ?int, string}>
      */
-    public function messageProvider(): iterable
+    public static function messageProvider(): iterable
     {
         yield [null, null, null, 'This value is not a valid phone number.'];
         yield [null, 'fixed_line', null, 'This value is not a valid fixed-line number.'];

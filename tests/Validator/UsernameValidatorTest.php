@@ -3,13 +3,18 @@
 namespace Cesurapp\ApiBundle\Tests\Validator;
 
 use Cesurapp\ApiBundle\Validator\Username;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class UsernameValidatorTest extends KernelTestCase
 {
-    /**
-     * @dataProvider validateProvider
-     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
+    #[DataProvider('validateProvider')]
     public function testValidate(?string $username, int $exceptedCount = 0): void
     {
         $validator = self::getContainer()->get('validator');
@@ -18,7 +23,7 @@ class UsernameValidatorTest extends KernelTestCase
         $this->assertSame($exceptedCount, $validator->validateProperty($class, 'username')->count());
     }
 
-    public function validateProvider(): iterable
+    public static function validateProvider(): iterable
     {
         yield ['+905411111111', 0];
         yield ['5411111111', 1];

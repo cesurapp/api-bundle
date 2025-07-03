@@ -12,6 +12,12 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class BodyJsonTransformerTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testJsonContentEvent(): void
     {
         $dispatcher = new EventDispatcher();

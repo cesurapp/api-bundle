@@ -11,6 +11,12 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ValidationExceptionTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testValidationExceptionResponse(): void
     {
         $validator = self::getContainer()->get('validator');

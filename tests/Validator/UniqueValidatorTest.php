@@ -16,6 +16,12 @@ class UniqueValidatorTest extends KernelTestCase
         $this->initDatabase(self::$kernel);
     }
 
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testUnique(): void
     {
         $validator = self::getContainer()->get('validator');

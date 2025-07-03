@@ -22,4 +22,11 @@ class ApiExceptionTest extends KernelTestCase
             }
         };
     }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        restore_exception_handler();
+    }
 }

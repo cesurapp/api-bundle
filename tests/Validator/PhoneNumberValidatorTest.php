@@ -5,6 +5,7 @@ namespace Cesurapp\ApiBundle\Tests\Validator;
 use Cesurapp\ApiBundle\Validator\PhoneNumber;
 use Cesurapp\ApiBundle\Validator\PhoneNumberValidator;
 use libphonenumber\PhoneNumberFormat;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
@@ -25,9 +26,13 @@ class PhoneNumberValidatorTest extends KernelTestCase
         $this->context->method('getObject')->willReturn(new Foo());
     }
 
-    /**
-     * @dataProvider validateProvider
-     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
+    #[DataProvider('validateProvider')]
     public function testValidate(
         ?string $value,
         bool $violates,
@@ -43,12 +48,12 @@ class PhoneNumberValidatorTest extends KernelTestCase
             $constraintViolationBuilder
                 ->expects($this->exactly(2))
                 ->method('setParameter')
-                ->with($this->isType('string'), $this->isType('string'))
+                ->with($this->isString(), $this->isString())
                 ->willReturn($constraintViolationBuilder);
             $constraintViolationBuilder
                 ->expects($this->once())
                 ->method('setCode')
-                ->with($this->isType('string'))
+                ->with($this->isString())
                 ->willReturn($constraintViolationBuilder);
 
             $this->context
@@ -92,7 +97,7 @@ class PhoneNumberValidatorTest extends KernelTestCase
      *
      * @return iterable<array{string|null, bool, 2?: string|string[]|null, 3?: ?string, 4?: ?string, 5?: ?int}>
      */
-    public function validateProvider(): iterable
+    public static function validateProvider(): iterable
     {
         yield [null, false];
         yield ['', false];

@@ -15,6 +15,12 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class CorsListenerTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testCorsOptionsRequest(): void
     {
         $dispatcher = new EventDispatcher();

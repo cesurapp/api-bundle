@@ -8,6 +8,12 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 class ExtractCommandTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testCommand(): void
     {
         self::bootKernel();

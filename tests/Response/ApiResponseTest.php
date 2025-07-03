@@ -7,6 +7,12 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ApiResponseTest extends KernelTestCase
 {
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        restore_exception_handler();
+    }
+
     public function testApiResponse(): void
     {
         self::bootKernel();
