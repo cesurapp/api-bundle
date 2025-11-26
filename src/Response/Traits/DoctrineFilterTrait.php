@@ -69,7 +69,8 @@ trait DoctrineFilterTrait
         };
 
         if (is_callable($resource['sortable_field'] ?? '')) {
-            $resource['sortable_field']($builder, $direction);
+            $alias = $builder->getRootAliases()[0];
+            $resource['sortable_field']($builder, $alias, $direction);
 
             return;
         }

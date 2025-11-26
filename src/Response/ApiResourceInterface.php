@@ -25,7 +25,7 @@ interface ApiResourceInterface
      *         'sortable_default' => true,          // DataTable Default Sortable Column
      *         'sortable_desc' => true,             // DataTable Sortable DESC
      *         'sortable_field' => 'firstName',     // Doctrine Getter Method
-     *         'sortable_field' => static fn (QueryBuilder $builder, string $direction) => $builder->orderBy('u.firstName', $direction),
+     *         'sortable_field' => static fn (QueryBuilder $builder, string $alias, string $direction) => $builder->orderBy('u.firstName', $direction),
      *         'filter_input' => 'input',           // DataTable Add Filter Input Type
      *         'exporter' => static fn($v) => $v,   // Export Column Template
      *     ]
