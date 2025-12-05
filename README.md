@@ -18,7 +18,7 @@ __Features:__
 * Excel, Csv exporter (Sonata Export Bundle)
 
 ### Install
-Required Symfony 7
+Required Symfony 8
 ```shell
 composer req cesurapp/api-bundle
 ```

@@ -13,9 +13,14 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 trait ExportTrait
 {
+    private function getAll(Request $request, string $key, bool|float|int|string|null $default = null): mixed
+    {
+        return $request->query->get($key, $default) ?? $request->request->get($key, $default);
+    }
+
     private function isExport(Request $request, array $resource): bool
     {
-        return $request->get('export') && array_filter($resource, static fn ($v) => isset($v['table']));
+        return $this->getAll($request, 'export') && array_filter($resource, static fn ($v) => isset($v['table']));
     }
 
     /**
@@ -24,7 +29,8 @@ trait ExportTrait
     private function exportStream(QueryBuilder|Query $builder, Request $request, array $resource): StreamedResponse
     {
         $resource = array_filter($resource, static fn ($v) => isset($v['table']));
-        $fields = array_intersect(array_map('strtolower', $request->get('export_field', [])), array_keys($resource)) ?: array_keys($resource);
+        $exportFields = $this->getAll($request, 'export_field') ?? [];
+        $fields = array_intersect(array_map('strtolower', $exportFields), array_keys($resource)) ?: array_keys($resource);
 
         // Source
         $source = new DoctrineORMQuerySourceIterator(
@@ -34,7 +40,7 @@ trait ExportTrait
         );
 
         // Writer
-        $writer = match ($request->get('export')) {
+        $writer = match ($this->getAll($request, 'export')) {
             'xls' => new XlsWriter('php://output'),
             default => new CsvWriter('php://output'),
         };

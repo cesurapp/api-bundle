@@ -71,10 +71,9 @@ class PhoneNumberValidatorTest extends KernelTestCase
     public function testValidateFromAttribute(): void
     {
         $classMetadata = new ClassMetadata(PhoneNumberDummy::class);
-        (new AttributeLoader())->loadClassMetadata($classMetadata);
+        new AttributeLoader()->loadClassMetadata($classMetadata);
 
-        [$constraint1] = $classMetadata->properties['phoneNumber1']->constraints;
-
+        $constraint1 = $classMetadata->getPropertyMetadata('phoneNumber1')[0]->getConstraints()[0];
         $validator = self::getContainer()->get('validator');
         $class = new PhoneNumberDummy();
 

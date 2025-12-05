@@ -12,7 +12,7 @@ class ApiConfiguration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder('api');
 
         // Thor Configuration
-        $treeBuilder->getRootNode() // @phpstan-ignore-line
+        $treeBuilder->getRootNode()
             ->children()
                 ->booleanNode('exception_converter')->defaultTrue()->end()
                 ->arrayNode('cors_header')

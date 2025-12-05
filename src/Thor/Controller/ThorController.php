@@ -8,7 +8,7 @@ use Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor;
 use Cesurapp\ApiBundle\Thor\Generator\TypeScriptGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class ThorController extends AbstractController
 {
@@ -19,7 +19,7 @@ class ThorController extends AbstractController
     #[Thor(title: 'Thor Api Documentation', isHidden: true, isAuth: false)]
     public function view(ThorExtractor $extractor): Response
     {
-        return (new Response())->setContent($extractor->render());
+        return new Response()->setContent($extractor->render());
     }
 
     /**
