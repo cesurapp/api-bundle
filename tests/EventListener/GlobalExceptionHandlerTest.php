@@ -25,7 +25,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
     {
         $dispatcher = new EventDispatcher();
         $listener = new GlobalExceptionHandler(
-            $this->createMock(TranslatorInterface::class),
+            $this->createStub(TranslatorInterface::class),
             new ParameterBag([
                 'api.exception_converter' => true,
                 'kernel.environment' => 'test',
@@ -34,7 +34,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new NotFoundHttpException(),
@@ -52,7 +52,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $container = self::getContainer();
         $handler = $container->get(GlobalExceptionHandler::class);
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new NotFoundHttpException(),
@@ -69,7 +69,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
     {
         $dispatcher = new EventDispatcher();
         $listener = new GlobalExceptionHandler(
-            $this->createMock(TranslatorInterface::class),
+            $this->createStub(TranslatorInterface::class),
             new ParameterBag([
                 'api.exception_converter' => true,
                 'kernel.environment' => 'test',
@@ -78,7 +78,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new ValidationException(),
@@ -97,7 +97,7 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $handler = $container->get(GlobalExceptionHandler::class);
 
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new ValidationException(),
@@ -114,13 +114,13 @@ class GlobalExceptionHandlerTest extends KernelTestCase
     {
         $dispatcher = new EventDispatcher();
         $listener = new GlobalExceptionHandler(
-            $this->createMock(TranslatorInterface::class),
+            $this->createStub(TranslatorInterface::class),
             new ParameterBag(['api.exception_converter' => false])
         );
         $dispatcher->addListener('onKernelException', [$listener, 'onKernelException']);
 
         $event = new ExceptionEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', content: '{"test": "content"}'),
             1,
             new NotFoundHttpException(),

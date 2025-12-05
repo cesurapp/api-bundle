@@ -6,7 +6,7 @@ use Cesurapp\ApiBundle\Validator\PhoneNumber;
 use Cesurapp\ApiBundle\Validator\PhoneNumberValidator;
 use libphonenumber\PhoneNumberFormat;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -15,12 +15,12 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 class PhoneNumberValidatorTest extends KernelTestCase
 {
-    private ExecutionContextInterface&MockObject $context;
+    private ExecutionContextInterface&Stub $context;
     private PhoneNumberValidator $validator;
 
     protected function setUp(): void
     {
-        $this->context = $this->createMock(ExecutionContextInterface::class);
+        $this->context = $this->createStub(ExecutionContextInterface::class);
         $this->validator = new PhoneNumberValidator();
         $this->validator->initialize($this->context);
         $this->context->method('getObject')->willReturn(new Foo());
@@ -41,12 +41,16 @@ class PhoneNumberValidatorTest extends KernelTestCase
         ?string $regionPath = null,
         ?int $format = null,
     ): void {
+        $context = $this->createMock(ExecutionContextInterface::class);
+        $validator = new PhoneNumberValidator();
+        $validator->initialize($context);
+        $context->method('getObject')->willReturn(new Foo());
+
         $constraint = new PhoneNumber(types: $type, defaultRegion: $defaultRegion, regionPath: $regionPath, format: $format);
 
         if (true === $violates) {
             $constraintViolationBuilder = $this->createMock(ConstraintViolationBuilderInterface::class);
-            $constraintViolationBuilder
-                ->expects($this->exactly(2))
+            $constraintViolationBuilder->expects($this->exactly(2))
                 ->method('setParameter')
                 ->with($this->isString(), $this->isString())
                 ->willReturn($constraintViolationBuilder);
@@ -56,16 +60,16 @@ class PhoneNumberValidatorTest extends KernelTestCase
                 ->with($this->isString())
                 ->willReturn($constraintViolationBuilder);
 
-            $this->context
+            $context
                 ->expects($this->once())
                 ->method('buildViolation')
                 ->with($constraint->getMessage())
                 ->willReturn($constraintViolationBuilder);
         } else {
-            $this->context->expects($this->never())->method('buildViolation');
+            $context->expects($this->never())->method('buildViolation');
         }
 
-        $this->validator->validate($value, $constraint);
+        $validator->validate($value, $constraint);
     }
 
     public function testValidateFromAttribute(): void

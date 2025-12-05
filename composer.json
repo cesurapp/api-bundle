@@ -45,6 +45,7 @@
     },
     "scripts": {
         "test": "@php ./vendor/bin/phpunit --testdox --colors",
+        "test:debug": "@php ./vendor/bin/phpunit --display-all-issues",
         "test:stop": "@php ./vendor/bin/phpunit --testdox --colors --stop-on-failure",
         "qa:fix": "vendor/bin/php-cs-fixer fix --ansi --allow-risky=yes",
         "qa:lint": "vendor/bin/php-cs-fixer fix --dry-run --diff --ansi --allow-risky=yes",

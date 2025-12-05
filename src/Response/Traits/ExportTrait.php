@@ -18,6 +18,13 @@ trait ExportTrait
         return $request->query->get($key, $default) ?? $request->request->get($key, $default);
     }
 
+    private function getArray(Request $request, string $key): array
+    {
+        $f = $request->query->all($key);
+
+        return $f ?: $request->request->all($key);
+    }
+
     private function isExport(Request $request, array $resource): bool
     {
         return $this->getAll($request, 'export') && array_filter($resource, static fn ($v) => isset($v['table']));
@@ -29,7 +36,7 @@ trait ExportTrait
     private function exportStream(QueryBuilder|Query $builder, Request $request, array $resource): StreamedResponse
     {
         $resource = array_filter($resource, static fn ($v) => isset($v['table']));
-        $exportFields = $this->getAll($request, 'export_field') ?? [];
+        $exportFields = $this->getArray($request, 'export_field');
         $fields = array_intersect(array_map('strtolower', $exportFields), array_keys($resource)) ?: array_keys($resource);
 
         // Source

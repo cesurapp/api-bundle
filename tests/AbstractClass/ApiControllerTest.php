@@ -3,19 +3,18 @@
 namespace Cesurapp\ApiBundle\Tests\AbstractClass;
 
 use Cesurapp\ApiBundle\AbstractClass\ApiController;
-use PHPUnit\Framework\MockObject\Exception;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 
 class ApiControllerTest extends KernelTestCase
 {
-    /**
-     * @throws Exception
-     */
     public function testSetContainer(): void
     {
         $container = self::getContainer();
 
-        $stub = $this->createPartialMock(ApiController::class, ['setContainer']);
+        // Use a concrete test stub (anonymous class) instead of a PHPUnit mock without expectations
+        $stub = new class () extends ApiController {
+        };
+
         $stubContainer = $stub->setContainer($container);
 
         $this->assertNull($stubContainer);

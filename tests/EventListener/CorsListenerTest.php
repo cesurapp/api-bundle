@@ -28,7 +28,7 @@ class CorsListenerTest extends KernelTestCase
         $dispatcher->addListener('onKernelRequest', [$listener, 'onKernelRequest']);
 
         $event = new RequestEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', method: 'OPTIONS'),
             1,
         );
@@ -41,7 +41,7 @@ class CorsListenerTest extends KernelTestCase
     {
         $dispatcher = self::getContainer()->get('event_dispatcher');
         $event = new RequestEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', method: 'OPTIONS'),
             1,
         );
@@ -64,7 +64,7 @@ class CorsListenerTest extends KernelTestCase
         $dispatcher->addListener('onKernelResponse', [$listener, 'onKernelResponse']);
 
         $event = new ResponseEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/', method: 'OPTIONS'),
             1,
             new Response(),
@@ -81,7 +81,7 @@ class CorsListenerTest extends KernelTestCase
     {
         $dispatcher = self::getContainer()->get('event_dispatcher');
         $event = new ResponseEvent(
-            $this->createMock(HttpKernelInterface::class),
+            $this->createStub(HttpKernelInterface::class),
             Request::create('/'),
             1,
             new Response(),
