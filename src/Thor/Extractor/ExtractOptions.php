@@ -4,6 +4,7 @@ namespace Cesurapp\ApiBundle\Thor\Extractor;
 
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Cesurapp\ApiBundle\Security\Attribute\IsGrantedAny;
 
 trait ExtractOptions
 {
@@ -33,9 +34,34 @@ trait ExtractOptions
 
     private function extractRoles(Route $route, \ReflectionMethod $method, array $thorAttr): array
     {
-        $permissions = $method->getAttributes(IsGranted::class);
-        if ($permissions) {
-            $permissions = $permissions[0]->getArguments();
+        $permissions = [];
+
+        // Symfony's built-in IsGranted (single attribute)
+        $isGrantedAttrs = $method->getAttributes(IsGranted::class);
+        if ($isGrantedAttrs) {
+            // getArguments returns a numerically indexed array where the first is the attribute
+            $args = $isGrantedAttrs[0]->getArguments();
+            if ($args) {
+                $first = $args[0] ?? null;
+                if (is_string($first)) {
+                    $permissions[] = $first;
+                } elseif (is_array($first)) {
+                    $permissions = array_merge($permissions, array_values(array_filter($first, 'is_string')));
+                }
+            }
+        }
+
+        // Custom IsGrantedAny (multiple attributes)
+        $anyAttrs = $method->getAttributes(IsGrantedAny::class);
+        foreach ($anyAttrs as $attr) {
+            $args = $attr->getArguments();
+            foreach ($args as $arg) {
+                if (is_string($arg)) {
+                    $permissions[] = $arg;
+                } elseif (is_array($arg)) {
+                    $permissions = array_merge($permissions, array_values(array_filter($arg, 'is_string')));
+                }
+            }
         }
 
         // Security Access Control Get Roles
