@@ -212,7 +212,7 @@ class TypeScriptGenerator
     private function generateEnum(array $enumsGroup): void
     {
         foreach ($enumsGroup as $namespace => $enumData) {
-            $file = 'Permission' === $namespace ? 'permission.ts.php' : 'enum.ts.php';
+            $file = 'Permission' === $namespace ? 'permission.ts.php' : (is_array($enumData) ? 'enum-array.ts.php' : 'enum.ts.php');
             $name = sprintf('%s.ts', ucfirst($namespace));
             $enumData = is_array($enumData) ? $enumData : $enumData::cases();
             file_put_contents(sprintf('%s/enum/%s', $this->path, $name), $this->renderTemplate($file, [
