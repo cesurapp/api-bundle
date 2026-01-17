@@ -150,7 +150,7 @@ class TypeScriptHelper
         }
 
         return match ($type) {
-            'int' => 'number',
+            'int', 'integer' => 'number',
             'bool', 'boolean' => 'boolean',
             'string' => 'string',
             'null' => 'null',
