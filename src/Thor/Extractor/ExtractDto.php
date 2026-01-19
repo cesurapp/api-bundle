@@ -227,7 +227,7 @@ trait ExtractDto
 
                 if (isset($r['callback'])) {
                     $data = call_user_func($r['callback']);
-                    $parameters[$property->getName()] = implode('|', array_map(static fn ($v) => '?'.$v, $data));
+                    $parameters[$property->getName()] = $r['callbackMultiple'] ? ['mArray' => $data] : implode('|', array_map(static fn ($v) => '?'.$v, $data));
                 } else {
                     if (!array_is_list($r['data'])) {
                         $parameters[$property->getName()] = $r['data'];

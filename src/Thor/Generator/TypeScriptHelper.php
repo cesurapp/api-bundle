@@ -83,7 +83,11 @@ class TypeScriptHelper
                         $value = "[\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).']';
                     }
                 } else {
-                    $value = "{\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).'}';
+                    if (isset($value['mArray'])) {
+                        $value = "(\n    ".implode(' | ', array_map(fn ($vx) => $this->convertTsType($vx), $value['mArray']))."\n".str_repeat('  ', $sub).')[]';
+                    } else {
+                        $value = "{\n".implode(",\n", $r['items'])."\n".str_repeat('  ', $sub).'}';
+                    }
                 }
             } else {
                 $isNull = str_contains($value, '?');
