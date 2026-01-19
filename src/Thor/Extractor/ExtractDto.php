@@ -232,7 +232,7 @@ trait ExtractDto
                     if (!array_is_list($r['data'])) {
                         $parameters[$property->getName()] = $r['data'];
                     } else {
-                        $parameters[$property->getName()] = implode('|', array_map(static fn ($v) => '?'.$v, $r['data']));
+                        $parameters[$property->getName()] = $this->isNestedArray($r['data']) ? $r['data'] : implode('|', array_map(static fn ($v) => '?'.$v, $r['data']));
                     }
                 }
 
@@ -445,5 +445,10 @@ trait ExtractDto
         }
 
         return array_unique($types);
+    }
+
+    private function isNestedArray(array $array): bool
+    {
+        return array_any($array, fn ($value) => is_array($value));
     }
 }
