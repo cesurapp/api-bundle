@@ -3,27 +3,34 @@
 [![App Tester](https://github.com/cesurapp/api-bundle/actions/workflows/testing.yaml/badge.svg)](https://github.com/cesurapp/api-bundle/actions/workflows/testing.yaml)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?logo=Unlicense)](LICENSE.md)
 
-This package allows you to expose fast api endpoints with Symfony. 
+This package allows you to expose fast API endpoints with Symfony.
 
-__Features:__
-* Json request body transformer 
-* Error messages are collected under a single format.
-* Language translation is applied to all error messages.
-* Custom cors header support
+**Features:**
+* JSON request body transformer
+* Error messages collected under a single format
+* Language translation applied to all error messages
+* Custom CORS header support
 * Automatic documentation generator (Thor)
-* Typescript client generator
-* Api DTO resolver
+* TypeScript client generator
+* API DTO resolver with auto-validation
 * Doctrine filter & sorter resource
-* PhoneNumber, UniqueEntity, Username validator
-* Excel, Csv exporter (Sonata Export Bundle)
+* PhoneNumber, UniqueEntity, Username validators
+* Excel, CSV exporter (Sonata Export Bundle)
 
-### Install
-Required Symfony 8
+**Documentation:**
+* [GUIDELINES.md](GUIDELINES.md) - Comprehensive usage guide for developers and AI agents
+
+## Installation
+
+**Requirements:** Symfony 8+, PHP 8.1+
+
 ```shell
-composer req cesurapp/api-bundle
+composer require cesurapp/api-bundle
 ```
 
-__Configuration:__ config/packages/api.yaml
+## Configuration
+
+Create `config/packages/api.yaml`:
 ```yaml
 api:
   exception_converter: false
@@ -49,183 +56,342 @@ api:
       isHidden: false
 ```
 
-### Generate TypeScript Client
-__View Documentation:__ http:://127.0.0.1:8000/thor
+## TypeScript Client Generation
+
+**View Documentation:** http://127.0.0.1:8000/thor
+
 ```shell
-bin/console thor:extract ./path # Generate Documentation to Directory
+bin/console thor:extract ./output-directory
 ```
 
-### Create Api Response
+## Usage Examples
+
+### Basic Controller with POST Endpoint
 
 ```php
-use \Cesurapp\ApiBundle\AbstractClass\ApiController;
-use \Cesurapp\ApiBundle\Response\ApiResponse;
-use \Cesurapp\ApiBundle\Thor\Attribute\Thor;
-use \Symfony\Component\Routing\Annotation\Route;
+use Cesurapp\ApiBundle\AbstractClass\ApiController;
+use Cesurapp\ApiBundle\Response\ApiResponse;
+use Cesurapp\ApiBundle\Thor\Attribute\Thor;
+use Symfony\Component\Routing\Annotation\Route;
 
-class TestController extends ApiController {
+class UserController extends ApiController
+{
     #[Thor(
-        stack: 'Login|1',
-        title: 'Login EndPoint',
-        info: "Description",
+        stack: 'User|1',
+        title: 'Create User',
+        info: 'Creates a new user account',
         request: [
-            'username' => 'string',
+            'email' => 'string',
             'password' => 'string',
+            'name' => 'string',
         ],
         response: [
             200 => ['data' => UserResource::class],
-            BadCredentialsException::class,
-            TokenExpiredException::class,
-            AccessDeniedException::class
         ],
-        dto: LoginDto::class, 
-        isAuth: false, 
-        isPaginate: false, 
-        order: 0
+        dto: CreateUserDto::class,
+        isAuth: false,
+        isPaginate: false
     )]
-    #[Route(name: 'Login', path: '/login', methods: ['POST'])]
-    public function getMethod(LoginDto $loginDto): ApiResponse {
+    #[Route('/users', methods: ['POST'])]
+    public function create(CreateUserDto $dto): ApiResponse
+    {
+        $user = new User();
+        $user->setEmail($dto->email);
+        $user->setPassword($dto->password);
+        $user->setName($dto->name);
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
         return ApiResponse::create()
-            ->setData(['custom-data'])
-            ->setQuery('QueryBuilder')
-            ->setHTTPCache(60)  // Enable HTTP Cache
-            ->setPaginate()     // Enable QueryBuilder Paginator
-            ->setHeaders([])    // Custom Header
-            ->setResource(UserResource::class)
+            ->setData($user)
+            ->setResource(UserResource::class);
     }
-    
+
     #[Thor(
-        stack: 'Profile|2',
-        title: 'Profile EndPoint',
+        stack: 'User|2',
+        title: 'List Users',
         query: [
-            'name' => '?string',
             'filter' => [
-                'id' => '?int',
                 'name' => '?string',
-                'fullName' => '?string',
+                'email' => '?string',
             ],
         ],
         response: [200 => ['data' => UserResource::class]],
-        isAuth: true, 
-        isPaginate: false, 
-        order: 0
+        isAuth: true,
+        isPaginate: true
     )]
-    #[Route(name: 'GetExample', path: '/get', methods: ['GET'])]
-    public function postMethod(): ApiResponse {
-        $query = $userRepo->createQueryBuilder('q');
-        
+    #[Route('/users', methods: ['GET'])]
+    public function list(UserRepository $repo): ApiResponse
+    {
         return ApiResponse::create()
-            ->setQuery($query)
-            ->setPaginate()     // Enable QueryBuilder Paginator
-            ->setHeaders([])    // Custom Header
-            ->setResource(UserResource::class)
+            ->setQuery($repo->createQueryBuilder('u'))
+            ->setPaginate()
+            ->setResource(UserResource::class);
     }
 }
 ```
 
-### Create Api Resource
-Filter and DataTable only work when pagination is enabled. Automatic TS columns are created for the table.
-Export is automatically enabled for all tables.
+### API Resource
+
+**Purpose:** Transform entities to API responses and define filtering/sorting behavior.
+
+**Note:** Filters and DataTable features only work when pagination is enabled.
 
 ```php
-use \Cesurapp\ApiBundle\Response\ApiResourceInterface;
+use Cesurapp\ApiBundle\Response\ApiResourceInterface;
+use Doctrine\ORM\QueryBuilder;
 
-class UserResource implements ApiResourceInterface {
-    public function toArray(mixed $item, mixed $optional = null): array {
+class UserResource implements ApiResourceInterface
+{
+    public function toArray(mixed $item, mixed $optional = null): array
+    {
         return [
-            'id' => $object->getId(),
-            'name' => $object->getName()
-        ]
+            'id' => $item->getId(),
+            'email' => $item->getEmail(),
+            'name' => $item->getName(),
+            'createdAt' => $item->getCreatedAt()->format(\DateTime::ATOM),
+        ];
     }
-    
-    public function toResource(): array {
+
+    public function toResource(): array
+    {
         return [
-              'id' => [
-                'type' => 'string', // Typescript Type -> ?string|?int|?boolean|?array|?object|NotificationResource::class|
-                'filter' => static function (QueryBuilder $builder, string $alias, mixed $data) {}, // app.test?filter[id]=test
-                'table' => [ // Typescript DataTable Types
-                    'label' => 'ID',                     // DataTable Label
-                    'sortable' => true,                  // DataTable Sortable Column   
-                    'sortable_default' => true,          // DataTable Default Sortable Column
-                    'sortable_desc' => true,             // DataTable Sortable DESC
-                    'filter_input' => 'input',           // DataTable Add Filter Input Type -> input|number|date|daterange|checkbox|country|language
-                   
-                    // These fields are used in the backend. It doesn't transfer to the frontend. 
-                    'exporter' => static fn($v) => $v,   // Export Column Template
-                    'sortable_field' => 'firstName',     // Doctrine Getter Method
-                    'sortable_field' => static fn (QueryBuilder $builder, string $direction) => $builder->orderBy('u.firstName', $direction),
+            'id' => [
+                'type' => 'string',
+                'filter' => static function (QueryBuilder $builder, string $alias, mixed $data) {
+                    $builder->andWhere("$alias.id = :id")->setParameter('id', $data);
+                },
+                'table' => [
+                    'label' => 'ID',
+                    'sortable' => true,
+                    'sortable_default' => true,
+                    'sortable_desc' => true,
+                    'filter_input' => 'input',
                 ],
             ],
-            'created_at' => [
+            'email' => [
+                'type' => 'string',
+                'filter' => static function (QueryBuilder $builder, string $alias, mixed $data) {
+                    $builder->andWhere("$alias.email LIKE :email")
+                        ->setParameter('email', "%$data%");
+                },
+                'table' => [
+                    'label' => 'Email',
+                    'sortable' => true,
+                    'filter_input' => 'input',
+                ],
+            ],
+            'createdAt' => [
                 'type' => 'string',
                 'filter' => [
-                    'from' => static function (QueryBuilder $builder, string $alias, mixed $data) {}, // app.test?filter[created_at][min]=test
-                    'to' => static function (QueryBuilder $builder, string $alias, mixed $data) {}, // app.test?filter[created_at][max]=test
-                ]
-            ]
-        ]   
+                    'from' => static function (QueryBuilder $builder, string $alias, mixed $data) {
+                        $builder->andWhere("$alias.createdAt >= :dateFrom")
+                            ->setParameter('dateFrom', $data);
+                    },
+                    'to' => static function (QueryBuilder $builder, string $alias, mixed $data) {
+                        $builder->andWhere("$alias.createdAt <= :dateTo")
+                            ->setParameter('dateTo', $data);
+                    },
+                ],
+                'table' => [
+                    'label' => 'Created At',
+                    'sortable' => true,
+                    'filter_input' => 'daterange',
+                ],
+            ],
+        ];
     }
-
 }
 ```
 
-__Using Filter__
+**Using Filters:**
 
-Filters are set according to the query parameter. Only matching records are filtered.
+```
+GET /users?filter[email]=john&filter[createdAt][from]=2024-01-01&filter[createdAt][to]=2024-12-31
+```
 
-Sample request `http://example.test/v1/userlist?filter[id]=1&filter[createdAt][min]=10.10.2023`
+### Data Transfer Object (DTO)
 
-### Create Form Validation
-Backend dates are stored in UTC ATOM format. In GET requests you get dates in ATOM format.
-In POST|PUT requests, send dates in ATOM format, converted to UTC.
+**Purpose:** Validate and type-cast incoming request data automatically.
+
+**Date Format:** Backend uses UTC ATOM format. Send/receive dates in ATOM format.
 
 ```php
 use Cesurapp\ApiBundle\AbstractClass\ApiDto;
 use Cesurapp\ApiBundle\Thor\Attribute\ThorResource;
 use Symfony\Component\Validator\Constraints as Assert;
 
-class LoginDto extends ApiDto {
-    /**
-     * Enable Auto Validation -> Default Enabled
-     */
-    protected bool $auto = true;
-    
-    /**
-     * Form Fields
-     */
+class CreateUserDto extends ApiDto
+{
     #[Assert\NotNull]
-    public string|int|null|bool $name;
-
-    #[Assert\Length(min: 3, max: 100)]
-    public ?string $lastName;
-
-    #[Assert\Length(min: 10, max: 100)]
-    #[Assert\NotNull]
-    public int $phone;
+    #[Assert\Email]
+    public string $email;
 
     #[Assert\NotNull]
-    #[Assert\GreaterThan(new \DateTimeImmutable())]
-    public \DateTimeImmutable $send_at;
-    
+    #[Assert\Length(min: 8, max: 100)]
+    public string $password;
+
+    #[Assert\NotNull]
+    #[Assert\Length(min: 2, max: 100)]
+    public string $name;
+
+    public ?int $age = null;
+
+    #[Assert\NotNull]
+    #[Assert\GreaterThan('now')]
+    public ?\DateTimeImmutable $activatedAt = null;
+}
+```
+
+**Complex Array Validation:**
+
+```php
+class UpdateSettingsDto extends ApiDto
+{
     #[Assert\Optional([
         new Assert\Type('array'),
         new Assert\Count(['min' => 1]),
         new Assert\All([
             new Assert\Collection([
-                'slug' => [
+                'key' => [
                     new Assert\NotBlank(),
-                    new Assert\Type(['type' => 'string']),
+                    new Assert\Type('string'),
                 ],
-                'label' => [
+                'value' => [
                     new Assert\NotBlank(),
                 ],
             ]),
         ]),
     ])]
     #[ThorResource(data: [[
-        'slug' => 'string',
-        'label' => 'string|int|boolean',
+        'key' => 'string',
+        'value' => 'string|int|boolean',
     ]])]
-    public ?array $data;
+    public ?array $settings = null;
 }
 ```
+
+**Validation Response (HTTP 422):**
+
+```json
+{
+  "message": "Validation failed",
+  "errors": {
+    "email": ["This value is not a valid email address."],
+    "password": ["This value is too short. It should have 8 characters or more."]
+  }
+}
+```
+
+## ApiResponse Methods
+
+| Method | Description |
+|--------|-------------|
+| `setData(mixed $data)` | Set response data |
+| `setQuery(QueryBuilder $query)` | Set Doctrine query for pagination/filtering |
+| `setPaginate(?int $max = 20)` | Enable pagination with optional max items per page |
+| `setResource(string $class)` | Apply resource transformation |
+| `setCode(int $code)` | Set HTTP status code (default: 200) |
+| `setHeaders(array $headers)` | Set custom headers |
+| `setHTTPCache(int $lifetime)` | Enable HTTP caching with lifetime in seconds |
+| `addMessage(string $message, MessageType $type)` | Add translatable message |
+| `addData(string $key, mixed $value)` | Add additional data to response |
+
+## Advanced Features
+
+### Custom Validation Hooks
+
+```php
+class CustomDto extends ApiDto
+{
+    protected function beforeValidated(): void
+    {
+        // Normalize data before validation
+        if ($this->email) {
+            $this->email = strtolower(trim($this->email));
+        }
+    }
+
+    protected function endValidated(): void
+    {
+        // Additional logic after successful validation
+    }
+}
+```
+
+### Manual Validation Control
+
+```php
+class ManualDto extends ApiDto
+{
+    protected bool $auto = false; // Disable auto-validation
+}
+
+// In controller
+$dto = new ManualDto($request, $validator);
+if (!$dto->validate(throw: false)) {
+    // Handle validation failure
+}
+```
+
+### HTTP Caching
+
+```php
+return ApiResponse::create()
+    ->setData($data)
+    ->setHTTPCache(60, tags: ['user', 'profile']) // Cache for 60 seconds
+    ->setResource(UserResource::class);
+```
+
+### Pagination with Custom Max
+
+```php
+return ApiResponse::create()
+    ->setQuery($queryBuilder)
+    ->setPaginate(max: 50, total: true) // 50 items per page, include total count
+    ->setResource(UserResource::class);
+```
+
+**Pagination Response:**
+
+```json
+{
+  "data": [...],
+  "pager": {
+    "max": 50,
+    "prev": 1,
+    "next": 3,
+    "current": 2,
+    "total": 150
+  }
+}
+```
+
+## Custom Validators
+
+This bundle includes custom validators:
+
+- `PhoneNumber` - Validates phone numbers
+- `UniqueEntity` - Validates entity uniqueness in database
+- `Username` - Validates username format
+
+```php
+use Cesurapp\ApiBundle\Validator\PhoneNumber;
+use Cesurapp\ApiBundle\Validator\UniqueEntity;
+
+class RegisterDto extends ApiDto
+{
+    #[Assert\NotNull]
+    #[PhoneNumber]
+    public string $phone;
+
+    #[Assert\NotNull]
+    #[UniqueEntity(entityClass: User::class, field: 'email')]
+    public string $email;
+}
+```
+
+## License
+
+MIT License - see [LICENSE.md](LICENSE.md)
