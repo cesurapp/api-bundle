@@ -26,12 +26,12 @@ interface ApiResourceInterface
      *         'sortable_desc' => true,             // DataTable Sortable DESC
      *         'sortable_field' => 'firstName',     // Doctrine Getter Method
      *         'sortable_field' => static fn (QueryBuilder $builder, string $alias, string $direction) => $builder->orderBy('u.firstName', $direction),
-     *         'filter_input' => 'input',           // DataTable Add Filter Input Type
+     *         'filter_input' => 'input',           // DataTable Add Filter Input Type -> List [input, number, range(number-range), country, language, currency, checkbox, date, daterange]
      *         'exporter' => static fn($v) => $v,   // Export Column Template
      *     ]
      * ]
      *
-     * Example Two Dimensionel Array
+     * Example Two Dimensionel Array (Filter Type -> daterange, range)
      *
      * 'created_at' => [
      *     'type' => 'string', // TypeScript Type
