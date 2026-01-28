@@ -101,7 +101,7 @@ trait ExtractDto
                             return ($isNull ? '?' : '').$type;
                         }
 
-                        return ($isNull ? '?' : '').'mixed';
+                        return ($isNull ? '?' : '').'string';
                     }
 
                     return ($isNull ? '?' : '').$type;
