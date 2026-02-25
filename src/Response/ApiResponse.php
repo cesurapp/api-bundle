@@ -262,6 +262,12 @@ class ApiResponse
             $max = $config['maxQuery'];
         }
 
+        if ('Cursor' === $config['type']) {
+            $this->paginateCursor($request, $config, $max);
+
+            return;
+        }
+
         // Paginate
         $this->getQuery()?->setFirstResult(($page - 1) * $max)->setMaxResults($max + 1);
         $paginator = new Paginator($this->getQuery(), $config['fetchJoin']);
@@ -282,5 +288,43 @@ class ApiResponse
         // Append Pager Data
         $this->addData('data', array_slice((array) $iterator, 0, $max), true);
         $this->addData('pager', $pager, true);
+    }
+
+    /**
+     * Paginate Query to Cursor.
+     *
+     * ?cursor=<lastId>&sort=DESC
+     */
+    private function paginateCursor(Request $request, array $config, int $max): void
+    {
+        $query = $this->getQuery();
+        $alias = $query->getRootAliases()[0];
+        $sortBy = 'DESC' === strtoupper($request->query->get('sort', 'DESC')) ? 'DESC' : 'ASC';
+
+        // Set Cursor Order
+        $cursor = $request->query->get('cursor');
+        if (null !== $cursor) {
+            $operator = 'DESC' === $sortBy ? '<' : '>';
+            $query->andWhere("$alias.id $operator :__cursor")->setParameter('__cursor', $cursor);
+        }
+
+        $query->orderBy("$alias.id", $sortBy)->setMaxResults($max + 1);
+
+        $paginator = new Paginator($query, $config['fetchJoin']);
+        $results = (array) $paginator->getIterator();
+        $hasMore = count($results) > $max;
+        $data = array_slice($results, 0, $max);
+
+        if ($hasMore && !empty($data)) {
+            $last = $data[$max - 1];
+            $nextCursor = $last->getId()->toString();
+        }
+
+        $this->addData('data', $data, true);
+        $this->addData('pager', [
+            'max' => $max,
+            'next' => $nextCursor ?? null,
+            'sort' => $sortBy,
+        ], true);
     }
 }
