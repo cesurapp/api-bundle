@@ -56,7 +56,7 @@ trait DoctrineFilterTrait
     private function sortResult(QueryBuilder|Query $builder, Request $request, array $resource): void
     {
         $sortBy = $request->query->get('sort_by');
-        $resource = $resource[$sortBy]['table'] ?? [];
+        $resource = $sortBy ? ($resource[$sortBy]['table'] ?? []) : [];
 
         if (!$sortBy || empty($resource['sortable'])) {
             return;
