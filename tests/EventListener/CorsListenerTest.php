@@ -88,7 +88,6 @@ class CorsListenerTest extends KernelTestCase
         );
         $dispatcher->dispatch($event, KernelEvents::RESPONSE);
 
-        $this->assertTrue($event->getResponse()->headers->has('access-control-allow-origin'));
         $this->assertTrue($event->getResponse()->headers->has('access-control-allow-methods'));
         $this->assertTrue($event->getResponse()->headers->has('access-control-allow-headers'));
         $this->assertTrue($event->getResponse()->headers->has('access-control-expose-headers'));

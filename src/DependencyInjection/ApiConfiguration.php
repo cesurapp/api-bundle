@@ -17,7 +17,6 @@ class ApiConfiguration implements ConfigurationInterface
                 ->booleanNode('exception_converter')->defaultTrue()->end()
                 ->arrayNode('cors_header')
                     ->defaultValue([
-                        ['name' => 'Access-Control-Allow-Origin', 'value' => '*'],
                         ['name' => 'Access-Control-Allow-Methods', 'value' => 'GET,POST,PUT,PATCH,DELETE'],
                         ['name' => 'Access-Control-Allow-Headers', 'value' => '*'],
                         ['name' => 'Access-Control-Expose-Headers', 'value' => 'Content-Disposition'],
@@ -28,6 +27,10 @@ class ApiConfiguration implements ConfigurationInterface
                             ->scalarNode('value')->end()
                         ->end()
                     ->end()
+                ->end()
+                ->arrayNode('cors_allowed_origin')
+                    ->defaultValue(['*'])
+                    ->scalarPrototype()->end()
                 ->end()
                 ->arrayNode('thor')->addDefaultsIfNotSet()
                     ->children()

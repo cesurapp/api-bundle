@@ -14,6 +14,8 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 readonly class CorsListener implements EventSubscriberInterface
 {
+    public const array localOrigins = ['http://localhost', 'https://localhost', 'capacitor://localhost', 'ionic://localhost', 'file://'];
+
     public function __construct(private ParameterBagInterface $bag)
     {
     }
@@ -21,6 +23,12 @@ readonly class CorsListener implements EventSubscriberInterface
     public function onKernelRequest(RequestEvent $event): void
     {
         if (!$event->isMainRequest()) {
+            return;
+        }
+
+        if ('OPTIONS' === $event->getRequest()->getMethod()) {
+            $event->setResponse(new JsonResponse([], 204));
+
             return;
         }
 
@@ -36,9 +44,33 @@ readonly class CorsListener implements EventSubscriberInterface
         }
 
         $response = $event->getResponse();
+        $origin = $event->getRequest()->headers->get('Origin');
+
+        // Set Cors Headers
         foreach ($this->bag->get('api.cors_header') as $header) {
             if (!$response->headers->has($header['name'])) {
                 $response->headers->set($header['name'], $header['value']);
+            }
+        }
+
+        if (!$origin) {
+            return;
+        }
+
+        // Custom Origins
+        if (in_array($origin, $this->bag->get('api.cors_allowed_origin'), true)) {
+            $response->headers->set('Access-Control-Allow-Origin', $origin);
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+
+            return;
+        }
+
+        // Is Localhost / WebView (Capacitor, Ionic, React Native)
+        foreach (self::localOrigins as $prefix) {
+            if (str_starts_with($origin, $prefix)) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                break;
             }
         }
     }
