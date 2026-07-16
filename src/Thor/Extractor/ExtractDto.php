@@ -40,6 +40,11 @@ trait ExtractDto
                         return true;
                     }
 
+                    // Uuid Object
+                    if (strpos($typeName, 'Uuid')) {
+                        return true;
+                    }
+
                     // Enum Object
                     if (enum_exists($typeName)) {
                         return true;
