@@ -11,10 +11,22 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Cors Handler.
+ *
+ * Preflight (OPTIONS) is answered here, before routing, and mirrors the request Origin for ANY
+ * origin. That is deliberate: a preflight carries no data, and the browser only exposes the REAL
+ * response when THAT response names the origin — which onKernelResponse still does only for the
+ * configured `api.cors_allowed_origin` list / local webviews, and an app controller only for
+ * whatever tenant domain it resolves itself. Gating the preflight too would mean a per-tenant
+ * origin (known only after routing) can never send a non-simple request — an Authorization
+ * header, a JSON body, DELETE — and is forced into query-string auth. An unrelated origin gains
+ * nothing: its request now gets *sent*, but without a token it is what curl could already do.
  */
 readonly class CorsListener implements EventSubscriberInterface
 {
     public const array localOrigins = ['http://localhost', 'https://localhost', 'capacitor://localhost', 'ionic://localhost', 'file://'];
+
+    /** How long the browser may reuse a preflight verdict, in seconds (cached per origin + URL). */
+    public const int PREFLIGHT_MAX_AGE = 600;
 
     public function __construct(private ParameterBagInterface $bag)
     {
@@ -27,7 +39,18 @@ readonly class CorsListener implements EventSubscriberInterface
         }
 
         if ('OPTIONS' === $event->getRequest()->getMethod()) {
-            $event->setResponse(new JsonResponse([], 204));
+            $response = new JsonResponse([], 204);
+
+            $origin = $event->getRequest()->headers->get('Origin');
+            if (null !== $origin && '' !== $origin) {
+                $response->headers->set('Access-Control-Allow-Origin', $origin);
+                $response->headers->set('Access-Control-Allow-Credentials', 'true');
+                $response->headers->set('Access-Control-Max-Age', (string) self::PREFLIGHT_MAX_AGE);
+                // A per-origin answer must not be handed to another origin by a shared cache.
+                $response->headers->set('Vary', 'Origin', false);
+            }
+
+            $event->setResponse($response);
 
             return;
         }
