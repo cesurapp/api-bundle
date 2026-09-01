@@ -207,12 +207,14 @@ class TypeScriptGenerator
     }
 
     /**
-     * Generate DataTable Columns.
+     * Generate Enums. A `_enums` entry is either an enum class (rendered as a TS enum) or an
+     * array (rendered as a const data table of arbitrary depth — enum-attached tables such as
+     * per-tier limits that would otherwise have to travel as JSON on every request).
      */
     private function generateEnum(array $enumsGroup): void
     {
         foreach ($enumsGroup as $namespace => $enumData) {
-            $file = 'Permission' === $namespace ? 'permission.ts.php' : (is_array($enumData) ? 'enum-array.ts.php' : 'enum.ts.php');
+            $file = 'Permission' === $namespace ? 'permission.ts.php' : (is_array($enumData) ? 'enum-const.ts.php' : 'enum.ts.php');
             $name = sprintf('%s.ts', ucfirst($namespace));
             $enumData = is_array($enumData) ? $enumData : $enumData::cases();
             file_put_contents(sprintf('%s/enum/%s', $this->path, $name), $this->renderTemplate($file, [
