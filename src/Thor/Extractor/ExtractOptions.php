@@ -2,9 +2,9 @@
 
 namespace Cesurapp\ApiBundle\Thor\Extractor;
 
+use Cesurapp\ApiBundle\Security\Attribute\IsGrantedAny;
 use Symfony\Component\Routing\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
-use Cesurapp\ApiBundle\Security\Attribute\IsGrantedAny;
 
 trait ExtractOptions
 {
@@ -16,7 +16,7 @@ trait ExtractOptions
         return [
             'path' => $route->getPath(),
             'methods' => $route->getMethods() ?: ['GET'],
-            'routeGroup' => $mainGroup,
+            'routeGroup' => '' !== $mainGroup ? $mainGroup : 'root',
             'shortName' => str_replace('Controller', '', $refController->getShortName()).ucfirst($refMethod->getShortName()),
             'shortController' => ucfirst(str_replace('Controller', '', $refController->getShortName())),
             'stack' => explode('|', $thorAttr['stack'] ?? '')[0],
@@ -27,54 +27,42 @@ trait ExtractOptions
             'isPaginate' => $thorAttr['isPaginate'] ?? false,
             'isAuth' => $thorAttr['isAuth'] ?? true,
             'order' => $thorAttr['order'] ?? 0,
-            'roles' => $this->extractRoles($route, $refMethod, $thorAttr),
+            'roles' => $this->extractRoles($route, $refController, $refMethod, $thorAttr),
             'isFile' => $thorAttr['isFile'] ?? false,
         ];
     }
 
-    private function extractRoles(Route $route, \ReflectionMethod $method, array $thorAttr): array
+    private function extractRoles(Route $route, \ReflectionClass $class, \ReflectionMethod $method, array $thorAttr): array
     {
         $permissions = [];
 
-        // Symfony's built-in IsGranted (single attribute)
-        $isGrantedAttrs = $method->getAttributes(IsGranted::class);
-        if ($isGrantedAttrs) {
-            // getArguments returns a numerically indexed array where the first is the attribute
-            $args = $isGrantedAttrs[0]->getArguments();
-            if ($args) {
-                $first = $args[0] ?? null;
-                if (is_string($first)) {
-                    $permissions[] = $first;
-                } elseif (is_array($first)) {
-                    $permissions = array_merge($permissions, array_values(array_filter($first, 'is_string')));
+        // Class and method level, read from the attribute objects: only the permission arguments,
+        // never `message` / `subject` / `statusCode`.
+        foreach ([$class, $method] as $reflection) {
+            foreach ($reflection->getAttributes(IsGranted::class) as $attr) {
+                $attribute = $attr->newInstance()->attribute;
+                if (is_string($attribute)) {
+                    $permissions[] = $attribute;
                 }
             }
-        }
 
-        // Custom IsGrantedAny (multiple attributes)
-        $anyAttrs = $method->getAttributes(IsGrantedAny::class);
-        foreach ($anyAttrs as $attr) {
-            $args = $attr->getArguments();
-            foreach ($args as $arg) {
-                if (is_string($arg)) {
-                    $permissions[] = $arg;
-                } elseif (is_array($arg)) {
-                    $permissions = array_merge($permissions, array_values(array_filter($arg, 'is_string')));
-                }
+            foreach ($reflection->getAttributes(IsGrantedAny::class) as $attr) {
+                array_push($permissions, ...array_filter($attr->newInstance()->attributes, 'is_string'));
             }
         }
 
         // Security Access Control Get Roles
         $accessControl = $this->bag->get('api.thor.access_control');
-        if ($accessControl) {
-            foreach ($accessControl as $item) {
-                if (preg_match("{{$item['path']}}", $route->getPath())) {
-                    $arr = !is_array($item['roles']) ? [$item['roles']] : $item['roles'];
-                    array_push($permissions, ...$arr);
-                }
+        foreach (is_array($accessControl) ? $accessControl : [] as $item) {
+            if (!isset($item['path'], $item['roles'])) {
+                continue;
+            }
+
+            if (preg_match('{'.str_replace('}', '\}', $item['path']).'}', $route->getPath())) {
+                array_push($permissions, ...(array) $item['roles']);
             }
         }
 
-        return array_unique(array_merge($permissions, $thorAttr['roles'] ?? []));
+        return array_values(array_unique(array_merge($permissions, $thorAttr['roles'] ?? [])));
     }
 }

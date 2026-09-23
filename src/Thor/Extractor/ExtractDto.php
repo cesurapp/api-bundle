@@ -31,10 +31,9 @@ trait ExtractDto
             return [];
         }
 
-        /** @var \ReflectionParameter[] $controllerArgs */
         $controllerArgs = array_values(
-            array_filter($method->getParameters(), static function ($p) {
-                $check = static function ($typeName) {
+            array_filter($method->getParameters(), static function (\ReflectionParameter $p): bool {
+                $check = static function (string $typeName): bool {
                     // Entity Object
                     if (strpos($typeName, 'Entity\\')) {
                         return true;
@@ -59,7 +58,7 @@ trait ExtractDto
                 };
 
                 if ($p->getType() instanceof \ReflectionUnionType) {
-                    return count(array_filter($p->getType()->getTypes(), static fn ($item) => $check($item->getName())));
+                    return array_any(self::typeNames($p->getType()), $check);
                 }
 
                 // Disable Attributes
@@ -67,31 +66,21 @@ trait ExtractDto
                     return false;
                 }
 
-                return $check($p->getType()->getName()); // @phpstan-ignore-line
+                // Untyped: a plain route value
+                $names = self::typeNames($p->getType());
+
+                return [] === $names || $check($names[0]);
             })
         );
 
         $matched = [];
         if (count($routerVars) === count($controllerArgs)) {
             foreach ($routerVars as $index => $key) {
-                $isNull = false;
-
-                if ($controllerArgs[$index]->getType() instanceof \ReflectionUnionType) {
-                    if ($controllerArgs[$index]->getType()->allowsNull()) {
-                        $isNull = true;
-                    }
-                    $types = array_map(static fn ($p) => $p->getName(), $controllerArgs[$index]->getType()->getTypes());
-                } else {
-                    if ($controllerArgs[$index]->getType()->allowsNull()) {
-                        $isNull = true;
-                    }
-                    $types = [$controllerArgs[$index]->getType()->getName()]; // @phpstan-ignore-line
-                }
+                $type = $controllerArgs[$index]->getType();
+                $isNull = null !== $type && $type->allowsNull();
 
                 // Remove Null
-                if (in_array('null', $types, true)) {
-                    unset($types[array_search('null', $types, true)]);
-                }
+                $types = array_filter(self::typeNames($type), static fn (string $name) => 'null' !== $name) ?: ['string'];
 
                 $matched[$key] = implode('|', array_unique(array_map(function ($type) use ($key, $isNull) {
                     if (class_exists($type)) {
@@ -278,62 +267,18 @@ trait ExtractDto
      */
     private function extractResponse(array $thorAttr, \ReflectionMethod $refMethod, array $methods): array
     {
-        // Render Exception Class
-        $renderException = static function (\ReflectionClass|string $refClass, int|string $code) {
-            if (is_string($refClass)) {
-                $refClass = new \ReflectionClass($refClass);
-            }
-            $parameters = array_reduce($refClass->getConstructor()?->getParameters(), static function ($result, $item) {
-                $result[$item->name] = $item;
-
-                return $result;
-            }, []);
-
-            $exceptionCode = isset($parameters['code']) ? $parameters['code']->getDefaultValue() : 400;
-            $message = $parameters['message']->getDefaultValue();
-
-            // Create Class
-            try {
-                $eClass = new ($refClass->getName())();
-
-                if ($refClass->hasMethod('getMessage')) {
-                    $message = $eClass->getMessage();
-                }
-                if ($refClass->hasMethod('getMessageKey')) {
-                    $message = $eClass->getMessageKey();
-                }
-                if ($eClass->getCode()) {
-                    $exceptionCode = $eClass->getCode();
-                }
-                if ($refClass->hasMethod('getStatusCode')) {
-                    $exceptionCode = $eClass->getStatusCode();
-                }
-            } catch (\Exception $exception) {
-            }
-
-            $exception = [
-                'type' => $refClass->getShortName(),
-                'code' => $exceptionCode < 1 ? 400 : $exceptionCode,
-                'message' => $message,
-            ];
-
-            if (isset($parameters['errors'])) {
-                $exception['errors'] = [];
-            }
-
-            return $exception;
-        };
 
         $thorAttr['exception'] = [];
 
-        array_walk_recursive($thorAttr['response'], function (&$resValue, $resKey) use ($renderException, &$thorAttr) {
+        array_walk_recursive($thorAttr['response'], function (&$resValue) use (&$thorAttr) {
             // Class
-            if (!is_array($resValue) && class_exists($resValue)) {
-                $refClass = new \ReflectionClass($resValue);
+            if (is_string($resValue) && class_exists($resValue)) {
+                $class = $resValue;
+                $refClass = new \ReflectionClass($class);
 
                 // Resources && DataTable
                 if ($refClass->implementsInterface(ApiResourceInterface::class)) {
-                    $resource = $this->resourceLocator->getResource($resValue);
+                    $resource = $this->resourceLocator->getResource($class);
                     $resValue = !empty($thorAttr['isPaginate']) ? [$resValue] : $resValue;
 
                     if (!empty($thorAttr['isPaginate'])) {
@@ -357,7 +302,7 @@ trait ExtractDto
 
                 // Exceptions
                 if ($refClass->implementsInterface(\Throwable::class)) {
-                    $exception = $renderException($resValue, $resKey);
+                    $exception = $this->renderException($class);
                     $thorAttr['exception'][$refClass->getShortName()] = $exception;
                     $resValue = null;
                 }
@@ -371,22 +316,14 @@ trait ExtractDto
             }
         }
 
-        // Append Message Format
+        // Append Message Format: the types of the addMessage() calls; without a type it is SUCCESS
         $source = $this->getMethodSource($refMethod);
-        if (str_contains($source, '->addMessage(')) {
+        if (preg_match_all('/->addMessage\(((?:[^()]|\((?1)\))*)\)/', $source, $calls)) {
             $content = ['message' => []];
 
-            if (str_contains($source, 'MessageType::ERROR')) {
-                $content['message']['error'] = '?array';
-            }
-            if (str_contains($source, 'MessageType::WARNING')) {
-                $content['message']['warning'] = '?array';
-            }
-            if (str_contains($source, 'MessageType::INFO')) {
-                $content['message']['info'] = '?array';
-            }
-            if (str_contains($source, 'MessageType::SUCCESS') || false !== preg_match('/addMessage[^\:\:]+$/', $source)) {
-                $content['message']['success'] = '?array';
+            foreach ($calls[1] as $arguments) {
+                $type = preg_match('/MessageType::(SUCCESS|ERROR|WARNING|INFO)\b/', $arguments, $m) ? strtolower($m[1]) : 'success';
+                $content['message'][$type] = '?array';
             }
 
             $thorAttr['response'][200] = array_merge($thorAttr['response'][200] ?? [], $content);
@@ -394,7 +331,7 @@ trait ExtractDto
 
         // Append DTO Exception Response
         if (isset($thorAttr['dto']) && !in_array('GET', $methods, false)) {
-            $exception = $renderException(ValidationException::class, 403);
+            $exception = $this->renderException(ValidationException::class);
             $thorAttr['exception'][$exception['code']] = $exception;
         }
 
@@ -419,37 +356,103 @@ trait ExtractDto
     }
 
     /**
+     * Documented shape of an exception response.
+     *
+     * @param class-string $class
+     */
+    private function renderException(string $class): array
+    {
+        $refClass = new \ReflectionClass($class);
+        $parameters = [];
+        foreach ($refClass->getConstructor()?->getParameters() ?? [] as $parameter) {
+            $parameters[$parameter->name] = $parameter;
+        }
+
+        $default = static fn (string $name, mixed $fallback) => isset($parameters[$name]) && $parameters[$name]->isDefaultValueAvailable()
+            ? $parameters[$name]->getDefaultValue()
+            : $fallback;
+        $exceptionCode = $default('code', 400);
+        $message = $default('message', '');
+
+        // Create Class (an exception with required constructor arguments keeps the defaults read above)
+        try {
+            $eClass = $refClass->newInstance();
+
+            if ($eClass instanceof \Throwable) {
+                $message = $eClass->getMessage();
+                if ($eClass->getCode()) {
+                    $exceptionCode = $eClass->getCode();
+                }
+            }
+            if (method_exists($eClass, 'getMessageKey')) {
+                $message = $eClass->getMessageKey();
+            }
+            if (method_exists($eClass, 'getStatusCode')) {
+                $exceptionCode = $eClass->getStatusCode();
+            }
+        } catch (\Throwable) {
+        }
+
+        $exception = [
+            'type' => $refClass->getShortName(),
+            'code' => $exceptionCode < 1 ? 400 : $exceptionCode,
+            'message' => $message,
+        ];
+
+        if (isset($parameters['errors'])) {
+            $exception['errors'] = [];
+        }
+
+        return $exception;
+    }
+
+    /**
      * ReflectionMethod Get Source Code.
      */
     private function getMethodSource(\ReflectionMethod $method): string
     {
-        $start_line = $method->getStartLine() - 1;
-        $length = $method->getEndLine() - $start_line;
-        $source = file($method->getFileName());
+        $file = (string) $method->getFileName();
+        // One read per controller file, not one per route
+        $lines = $this->sourceCache[$file] ??= (file($file) ?: []);
 
-        return trim(implode('', array_slice($source, $start_line, $length)));
+        $start = $method->getStartLine() - 1;
+
+        return trim(implode('', array_slice($lines, $start, $method->getEndLine() - $start)));
     }
 
-    private function extractTypes(\ReflectionType|\ReflectionNamedType $type, bool $isNull = false): array
+    private function extractTypes(?\ReflectionType $type, bool $isNull = false): array
     {
         $types = [];
 
         if ($type instanceof \ReflectionUnionType) {
             $isNull = !$isNull ? $type->allowsNull() : true;
 
-            foreach ($type->getTypes() as $item) {
-                if (class_exists($item->getName())) {
+            foreach (self::typeNames($type) as $name) {
+                if (class_exists($name)) {
                     $types[] = $isNull ? '?string' : 'string';
                     $types[] = $isNull ? '?int' : 'int';
-                } elseif ('null' !== $item->getName()) {
-                    $types[] = ($isNull ? '?' : '').$item->getName();
+                } elseif ('null' !== $name) {
+                    $types[] = ($isNull ? '?' : '').$name;
                 }
             }
-        } else {
-            $types[] = ($type->allowsNull() ? '?' : '').$type->getName(); // @phpstan-ignore-line
+        } elseif (null !== $type) {
+            $types[] = ($type->allowsNull() ? '?' : '').(self::typeNames($type)[0] ?? 'mixed');
         }
 
         return array_unique($types);
+    }
+
+    /**
+     * @return list<string> names of a type; an intersection (or DNF part) counts as "object"
+     */
+    private static function typeNames(?\ReflectionType $type): array
+    {
+        return match (true) {
+            $type instanceof \ReflectionNamedType => [$type->getName()],
+            $type instanceof \ReflectionUnionType => array_values(array_map(static fn (\ReflectionType $t) => $t instanceof \ReflectionNamedType ? $t->getName() : 'object', $type->getTypes())),
+            $type instanceof \ReflectionIntersectionType => ['object'],
+            default => [],
+        };
     }
 
     private function isNestedArray(array $array): bool

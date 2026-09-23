@@ -20,7 +20,7 @@ class PhoneNumberTest extends KernelTestCase
     }
 
     #[DataProvider('messageProvider')]
-    public function testMessage(?string $message, array|string|null $type, ?int $format, string $expectedMessage): void
+    public function testMessage(?string $message, array|string|null $type, int|PhoneNumberFormat|null $format, string $expectedMessage): void
     {
         $phoneNumber = new PhoneNumber(types: $type, format: $format, message: $message);
         $this->assertSame($expectedMessage, $phoneNumber->getMessage());

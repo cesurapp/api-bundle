@@ -6,7 +6,6 @@ use Cesurapp\ApiBundle\Validator\PhoneNumber;
 use Cesurapp\ApiBundle\Validator\PhoneNumberValidator;
 use libphonenumber\PhoneNumberFormat;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -15,17 +14,6 @@ use Symfony\Component\Validator\Violation\ConstraintViolationBuilderInterface;
 
 class PhoneNumberValidatorTest extends KernelTestCase
 {
-    private ExecutionContextInterface&Stub $context;
-    private PhoneNumberValidator $validator;
-
-    protected function setUp(): void
-    {
-        $this->context = $this->createStub(ExecutionContextInterface::class);
-        $this->validator = new PhoneNumberValidator();
-        $this->validator->initialize($this->context);
-        $this->context->method('getObject')->willReturn(new Foo());
-    }
-
     protected function tearDown(): void
     {
         parent::tearDown();
@@ -39,11 +27,10 @@ class PhoneNumberValidatorTest extends KernelTestCase
         array|string|null $type = null,
         ?string $defaultRegion = null,
         ?string $regionPath = null,
-        ?int $format = null,
+        int|PhoneNumberFormat|null $format = null,
     ): void {
         $context = $this->createMock(ExecutionContextInterface::class);
         $validator = new PhoneNumberValidator();
-        $validator->initialize($context);
         $context->method('getObject')->willReturn(new Foo());
 
         $constraint = new PhoneNumber(types: $type, defaultRegion: $defaultRegion, regionPath: $regionPath, format: $format);
@@ -69,7 +56,7 @@ class PhoneNumberValidatorTest extends KernelTestCase
             $context->expects($this->never())->method('buildViolation');
         }
 
-        $validator->validate($value, $constraint);
+        $validator->validateInContext($value, $constraint, $context);
     }
 
     public function testValidateFromAttribute(): void

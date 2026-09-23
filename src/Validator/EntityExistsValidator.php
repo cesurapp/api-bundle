@@ -2,7 +2,6 @@
 
 namespace Cesurapp\ApiBundle\Validator;
 
-use Doctrine\Common\Collections\Criteria;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -24,12 +23,25 @@ class EntityExistsValidator extends ConstraintValidator
             return;
         }
 
-        $criteria = Criteria::create()->where(Criteria::expr()->eq($constraint->colName, $value));
-        $repo = $this->entityManager->getRepository($constraint->entityClass); // @phpstan-ignore-line
-        if (!$result = $repo->matching($criteria)->first()) {
+        if (!is_scalar($value) && !$value instanceof \Stringable) {
             $this->context->addViolation($constraint->message);
+
+            return;
         }
 
-        $this->context->getObject()->{$this->context->getPropertyName()} = $result;
+        // findOneBy: LIMIT 1, instead of hydrating every matching row
+        $repo = $this->entityManager->getRepository($constraint->entityClass); // @phpstan-ignore-line
+        $result = $repo->findOneBy([$constraint->colName => $value]);
+        if (null === $result) {
+            $this->context->addViolation($constraint->message);
+
+            return;
+        }
+
+        $object = $this->context->getObject();
+        $property = $this->context->getPropertyName();
+        if (is_object($object) && $property) {
+            $object->{$property} = $result;
+        }
     }
 }

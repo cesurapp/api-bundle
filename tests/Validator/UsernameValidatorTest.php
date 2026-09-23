@@ -32,6 +32,8 @@ class UsernameValidatorTest extends KernelTestCase
         yield ['asdadsadsa@sdas.com', 0];
         yield ['asdadsadsa@sasds', 1];
         yield ['foo', 1];
+        // Unparsable numbers are a violation, not an uncaught NumberParseException
+        yield ['1234567890123456789012', 1];
     }
 }
 

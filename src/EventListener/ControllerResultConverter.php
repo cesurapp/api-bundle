@@ -14,8 +14,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 readonly class ControllerResultConverter implements EventSubscriberInterface
 {
-    public function __construct(private ApiResourceLocator $resourceLocator, private TranslatorInterface $translator)
-    {
+    public function __construct(
+        private ApiResourceLocator $resourceLocator,
+        private TranslatorInterface $translator,
+        private int $exportMaxRows = 0,
+    ) {
     }
 
     public function onKernelView(ViewEvent $event): void
@@ -23,7 +26,7 @@ readonly class ControllerResultConverter implements EventSubscriberInterface
         $apiResponse = $event->getControllerResult();
         if ($apiResponse instanceof ApiResponse) {
             $event->setResponse(
-                $apiResponse->processResponse($event->getRequest(), $this->resourceLocator, $this->translator)
+                $apiResponse->processResponse($event->getRequest(), $this->resourceLocator, $this->translator, $this->exportMaxRows ?: null)
             );
         }
     }

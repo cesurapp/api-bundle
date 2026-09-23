@@ -17,7 +17,7 @@ class PhoneNumberValidator extends ConstraintValidator
     public function validate(mixed $value, Constraint $constraint): void
     {
         if (!$constraint instanceof PhoneNumber) {
-            throw new UnexpectedTypeException($constraint, UniqueEntity::class);
+            throw new UnexpectedTypeException($constraint, PhoneNumber::class);
         }
 
         if (!$value || !is_string($value)) {
@@ -79,8 +79,7 @@ class PhoneNumberValidator extends ConstraintValidator
             }
         }
 
-        $validTypes = array_unique($validTypes);
-
+        // No array_unique(): the types are ints in libphonenumber 8 and enum cases in 9, which it cannot compare
         if (0 < \count($validTypes)) {
             $type = $util->getNumberType($phoneNumber);
 
@@ -109,7 +108,8 @@ class PhoneNumberValidator extends ConstraintValidator
                 throw new \LogicException('The current validation does not concern an object');
             }
 
-            $defaultRegion = $object->{$path};
+            // An unset (typed, uninitialized) region property means "no region", not an Error
+            $defaultRegion = isset($object->{$path}) ? $object->{$path} : null;
         }
 
         return $defaultRegion ?? $constraint->defaultRegion;

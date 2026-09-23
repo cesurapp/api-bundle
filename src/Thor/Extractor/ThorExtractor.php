@@ -19,6 +19,12 @@ class ThorExtractor
 
     public array $custom = [];
 
+    /** @var array<string, list<string>> controller file => lines */
+    private array $sourceCache = [];
+
+    /** @var array<string, bool> */
+    private static array $resourceClassCache = [];
+
     public function __construct(
         private readonly RouterInterface $router,
         private readonly ParameterBagInterface $bag,
@@ -42,7 +48,7 @@ class ThorExtractor
 
         // Resource Extractor
         array_walk_recursive($data, static function (&$val) use ($data) {
-            if (is_string($val) && class_exists($val) && in_array(ApiResourceInterface::class, class_implements($val), true)) {
+            if (is_string($val) && ThorExtractor::isResourceClass($val)) {
                 $val = $data['_resource'][ThorExtractor::baseClass($val).':'.ThorExtractor::basePath($val)];
             }
         });
@@ -54,7 +60,12 @@ class ThorExtractor
         ob_start();
         include __DIR__.'/../Template/base.html.php';
 
-        return ob_get_clean();
+        $output = ob_get_clean();
+        if (false === $output) {
+            throw new \LogicException('The template closed the output buffer.');
+        }
+
+        return $output;
     }
 
     /**
@@ -63,6 +74,10 @@ class ThorExtractor
     public function extractData(bool $grouped = false): array
     {
         $data = [];
+        $this->custom['_enums'] = [];
+        $withSource = 'dev' === $this->bag->get('kernel.environment');
+        $globalConfig = $this->bag->get('api.thor.global_config');
+        $projectDir = $this->bag->get('kernel.project_dir');
 
         foreach ($this->routerList() as $path => $route) {
             $refController = new \ReflectionClass($route['controller']);
@@ -72,14 +87,14 @@ class ThorExtractor
             // Find Thor Attribute
             $attrThor = $refMethod->getAttributes(Thor::class);
             $attrThor = isset($attrThor[0]) ? $attrThor[0]->getArguments() : [];
-            $attrThor = array_replace_recursive($this->bag->get('api.thor.global_config'), $attrThor);
+            $attrThor = array_replace_recursive(is_array($globalConfig) ? $globalConfig : [], $attrThor);
             if (!empty($attrThor['isHidden'])) {
                 continue;
             }
 
             $data[$routeId] = [
                 ...$this->extractOptions($refController, $refMethod, $route['router'], $attrThor),
-                ...$this->extractController($refController, $refMethod, $route['router'], $this->bag->get('kernel.project_dir')),
+                ...$this->extractController($refController, $refMethod, $route['router'], is_string($projectDir) ? $projectDir : '', $withSource),
                 ...$this->extractDto($refController, $refMethod, $route['router'], $attrThor),
             ];
         }
@@ -165,9 +180,11 @@ class ThorExtractor
         $list = [];
 
         foreach ($this->router->getRouteCollection()->all() as $index => $router) {
-            if ($router->getDefault('_controller')) {
-                [$controller, $method] = explode('::', $router->getDefault('_controller'));
-                if (!class_exists($controller)) {
+            $target = $router->getDefault('_controller');
+            if ($target) {
+                // "Class::method", [Class, method] or an invokable "Class"
+                [$controller, $method] = is_array($target) ? array_values($target) + [1 => '__invoke'] : explode('::', (string) $target, 2) + [1 => '__invoke'];
+                if (!is_string($controller) || !class_exists($controller) || !method_exists($controller, (string) $method)) {
                     continue;
                 }
 
@@ -182,6 +199,14 @@ class ThorExtractor
         return $list;
     }
 
+    /**
+     * Memoized: the extractor and the TS generator ask this for every string leaf of the docs.
+     */
+    public static function isResourceClass(string $class): bool
+    {
+        return self::$resourceClassCache[$class] ??= class_exists($class) && is_subclass_of($class, ApiResourceInterface::class);
+    }
+
     public static function baseClass(string|object|null $class): ?string
     {
         return $class ? basename(str_replace('\\', '/', is_object($class) ? get_class($class) : $class)) : null;
@@ -193,7 +218,7 @@ class ThorExtractor
             return null;
         }
 
-        $mainGroup = explode('\\', preg_replace('/App\\\/', '', $class));
+        $mainGroup = explode('\\', preg_replace('/App\\\/', '', $class) ?? $class);
         $mainGroup = strtolower(str_replace('_', '', $mainGroup[0]));
 
         return $mainGroup;

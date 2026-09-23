@@ -35,6 +35,7 @@ class ValidationException extends ApiException
 
     public function getErrors(): ?array
     {
-        return $this->errors;
+        // The constructor already turned a violation list into [field => messages]
+        return is_array($this->errors) ? $this->errors : null;
     }
 }

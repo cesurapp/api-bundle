@@ -15,6 +15,10 @@ class ApiConfiguration implements ConfigurationInterface
         $treeBuilder->getRootNode()
             ->children()
                 ->booleanNode('exception_converter')->defaultTrue()->end()
+                ->booleanNode('cors')->defaultTrue()->info('Register the CORS listener (preflight + Access-Control-* headers).')->end()
+                ->booleanNode('json_body')->defaultTrue()->info('Decode application/json request bodies into $request->request.')->end()
+                ->booleanNode('sticky_locale')->defaultTrue()->info('Keep the _locale of the route in the session.')->end()
+                ->integerNode('export_max_rows')->defaultValue(100000)->min(0)->info('Max rows of an ?export=csv|xls download (0 = unlimited). ApiResponse::setExportLimit() overrides it per response.')->end()
                 ->arrayNode('cors_header')
                     ->defaultValue([
                         ['name' => 'Access-Control-Allow-Methods', 'value' => 'GET,POST,PUT,PATCH,DELETE'],
@@ -29,7 +33,8 @@ class ApiConfiguration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->arrayNode('cors_allowed_origin')
-                    ->defaultValue(['*'])
+                    ->info('Exact origins (scheme://host[:port]) that get Access-Control-Allow-Origin with credentials. localhost / capacitor:// / ionic:// are always allowed.')
+                    ->defaultValue([])
                     ->scalarPrototype()->end()
                 ->end()
                 ->arrayNode('thor')->addDefaultsIfNotSet()

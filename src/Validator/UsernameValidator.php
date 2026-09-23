@@ -2,6 +2,7 @@
 
 namespace Cesurapp\ApiBundle\Validator;
 
+use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Email;
@@ -29,7 +30,8 @@ class UsernameValidator extends ConstraintValidator
             return;
         }
 
-        // Check Number
+        // Check Number (a numeric value may arrive as int)
+        $value = (string) $value;
         if (strlen($value) < 8) {
             $this->context->addViolation('Please enter a valid phone number');
 
@@ -37,8 +39,15 @@ class UsernameValidator extends ConstraintValidator
         }
 
         $util = PhoneNumberUtil::getInstance();
-        // Parse Region
-        $parse = $util->parse(str_starts_with($value, '+') ? $value : '+'.$value);
+        // Parse Region (too long / not a number is the user's input, not a server error)
+        try {
+            $parse = $util->parse(str_starts_with($value, '+') ? $value : '+'.$value);
+        } catch (NumberParseException) {
+            $this->context->addViolation('Please enter a valid phone number');
+
+            return;
+        }
+
         if (!$parse->getCountryCode()) {
             $this->context->addViolation('Please enter a valid phone number');
 

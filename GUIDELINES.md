@@ -46,8 +46,9 @@ class UserResource implements ApiResourceInterface
             ],
             'name' => [
                 'type' => 'string',
-                'filter' => static function (QueryBuilder $builder, string $alias, mixed $data) {
-                    $builder->andWhere("$alias.name LIKE :name")->setParameter('name', "%$data%");
+                'filter' => static function (QueryBuilder $builder, string $alias, string $data) {
+                    // Prefix match: can use an index, "%$data%" cannot
+                    $builder->andWhere("$alias.name LIKE :name")->setParameter('name', addcslashes($data, '%_').'%');
                 },
                 'table' => [
                     'label' => 'Name',
@@ -67,6 +68,12 @@ return ApiResponse::create()
     ->setPaginate()
     ->setResource(UserResource::class);
 ```
+
+### Filter Rules
+- Type the `$data` parameter: `string` for a single value, `array|string` for multi-value filters (`filter[x][]=a`). A value of the wrong shape is answered with 400.
+- Throw `\InvalidArgumentException` for a value the filter cannot use (e.g. an invalid UUID): it becomes a 400 with that message.
+- Objects in the response data go through the resource; dates, enums and UUIDs are left for JSON encoding.
+- For relations read in `toArray()`, implement `ApiResourcePreloadInterface::preload()` to load them for all items at once.
 
 ---
 
@@ -104,8 +111,9 @@ class UserController extends ApiController
 
 ### ApiResponse Methods
 - `setData(mixed $data)` - Set response data
-- `setQuery(QueryBuilder $query)` - Set Doctrine query for pagination/filtering
-- `setPaginate(?int $max = 20)` - Enable pagination
+- `setQuery(QueryBuilder|Query $query)` - Set Doctrine query for pagination/filtering (filter/sort/cursor need a QueryBuilder)
+- `setPaginate(?int $max = 20, bool $total = false, ?bool $fetchJoin = null, bool $cursor = false)` - Enable pagination (offset, or cursor on the identifier)
+- `setExportLimit(?int $limit)` - Row limit of `?export=csv|xls` (default `api.export_max_rows`)
 - `setResource(string $class)` - Apply resource transformation
 - `setCode(int $code)` - Set HTTP status code
 - `setHeaders(array $headers)` - Set custom headers
@@ -172,13 +180,13 @@ public function create(CreateUserDto $dto): ApiResponse
 
 ### Key Features
 - **Auto-validation**: Runs on construction by default (`protected bool $auto = true`)
-- **Auto-mapping**: Request data automatically mapped to public properties
-- **Type casting**: Automatic conversion to declared types (int, string, bool, DateTime, enums)
+- **Auto-mapping**: Request data is mapped to the public properties of the DTO and of its parent DTO classes (a shared abstract base works). `ApiDto`'s own properties are never request fields.
+- **Type casting**: Strict conversion to declared types. `null` (and `''` for non-string fields) stays null; `"false"`/`"0"`/`"off"` are false; `"abc"` for an int, `"1.5"` for an int or an unknown enum value is a validation error, not a silent 0. Unions keep the value's own type first (`"42"` stays a string in `int|string`).
 - **PUT method handling**: `$id` automatically injected from route parameters on PUT requests
 
 ### Getting Validated Data
 ```php
-$dto->validated();           // Returns all validated fields as array
+$dto->validated();           // Returns all fields as array (read fresh on every call)
 $dto->validated('email');    // Returns specific field value
 $dto->email;                 // Direct property access
 ```
@@ -283,6 +291,7 @@ Generates TypeScript types, API client code, and DataTable schemas from PHP code
 ```bash
 bin/console thor:extract ./output-directory
 ```
+The directory is replaced; it must be empty or a previous Thor output (`.thor` marker), otherwise pass `--force`.
 
 ### Generated Output
 - TypeScript API client with typed methods

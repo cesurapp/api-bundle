@@ -9,7 +9,7 @@
 
     <!-- Quasar -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet" type="text/css">
-    <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet" type="text/css">
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.prod.css" rel="stylesheet" type="text/css" integrity="sha384-svtSeAIa638q6evYcty9RVn+EX6X0oG3LvvPbUwZfRTXYt57ig9QOkpKn/ikC3Uu" crossorigin="anonymous">
     <style>
         .q-badge{
             font-size: 14px;
@@ -246,16 +246,22 @@
         </q-page-container>
     </q-layout>
 </div>
-<script src="//cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
-<script src="//cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.umd.prod.js"></script>
+<!-- Pinned + SRI: a new Vue major or a tampered CDN file must not change or break the public docs -->
+<script src="https://cdn.jsdelivr.net/npm/vue@3.5.43/dist/vue.global.prod.js" integrity="sha384-EAm39cvdifYiZjQQxCxStLasDodQMYokBrN5XPuJ7aC/JsQ4vyEUCy/+6hXpcBOW" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/quasar@2.14.1/dist/quasar.umd.prod.js" integrity="sha384-HH6P+U23h8QYEJnKm+v1WCgfY5ELDYp468cboNdxmmgukoGZtwRJw62NQIaKsvbA" crossorigin="anonymous"></script>
+<?php
+// Every value below lands inside <script>: JSON_HEX_* keeps "</script>", quotes and & from breaking out of it.
+$jsonFlags = JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+$isDev = 'dev' === $this->bag->get('kernel.environment');
+?>
 <script>
     const app = Vue.createApp({
         data() {
             return {
                 leftDrawerOpen: false,
-                env: <?php echo json_encode($this->bag->get('kernel.environment')); ?>,
-                projectDir: '<?php echo $this->bag->get('kernel.project_dir'); ?>',
-                baseUrl: '<?php echo $this->bag->get('api.thor.base_url'); ?>',
+                env: <?php echo json_encode($this->bag->get('kernel.environment'), $jsonFlags); ?>,
+                projectDir: <?php echo json_encode($isDev ? $this->bag->get('kernel.project_dir') : '', $jsonFlags); ?>,
+                baseUrl: <?php echo json_encode((string) $this->bag->get('api.thor.base_url'), $jsonFlags); ?>,
                 methodColors: {
                     'GET': 'primary',
                     'DELETE': 'negative',
@@ -263,9 +269,9 @@
                     'PUT' : 'warning',
                 },
                 downloadLinks: {
-                    'TypeScript': "<?php echo $this->router->generate('thor.download'); ?>"
+                    'TypeScript': <?php echo json_encode($this->router->generate('thor.download'), $jsonFlags); ?>
                 },
-                docData: <?php echo json_encode(array_filter($data, static fn ($v, $k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_BOTH), JSON_THROW_ON_ERROR); ?>
+                docData: <?php echo json_encode(array_filter($data, static fn ($v, $k) => !str_starts_with($k, '_'), ARRAY_FILTER_USE_BOTH), $jsonFlags); ?>
             }
         },
         mounted() {
@@ -315,12 +321,11 @@
                 });
             },
             getPhpStormPath(item) {
-                return `phpstorm://open?file=${this.projectDir + item.controllerPath}; ?>&line=${item.controllerLine}`
+                return `phpstorm://open?file=${encodeURIComponent(this.projectDir + item.controllerPath)}&line=${item.controllerLine}`
             },
             viewInfo() {
                 this.$q.dialog({
                     title: 'System Details',
-                    html:true,
                     message: 'Base URL: ' + this.baseUrl
                 })
             },
@@ -331,9 +336,13 @@
                 this.$q.dialog({
                     title: 'Required Roles',
                     html:true,
-                    class: 'fakfa',
-                    message: `<div class="flex gap-10">${item.roles.map(i => `<p class="q-badge flex inline items-center no-wrap q-badge--single-line bg-blue q-pa-sm q-mb-none text-weight-medium">${i}</p>`).join('')}</div>`
+                    message: `<div class="flex gap-10">${item.roles.map(i => `<p class="q-badge flex inline items-center no-wrap q-badge--single-line bg-blue q-pa-sm q-mb-none text-weight-medium">${this.escapeHtml(i)}</p>`).join('')}</div>`
                 })
+            },
+            escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = String(str);
+                return div.innerHTML;
             },
             copyToClipboard(text) {
                 Quasar.copyToClipboard(text).then(() => {

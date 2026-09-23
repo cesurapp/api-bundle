@@ -7,22 +7,31 @@ use Doctrine\ORM\QueryBuilder;
 class DoctrineHelper
 {
     /**
-     * Clear Same Alias Join.
+     * Clear Same Alias Join: when several filters join the same alias, keep the first join.
+     * Joins of every root alias are kept (a multi-root query does not lose the others').
      */
     public static function setUniqueJoin(QueryBuilder $builder): void
     {
-        // Clear Same Alias Joins
-        $alias = $builder->getRootAliases()[0];
-        $joins = $builder->getDQLPart('join')[$alias] ?? [];
-        $aliases = [];
+        $allJoins = $builder->getDQLPart('join');
+        if (!$allJoins) {
+            return;
+        }
 
-        foreach ($joins as $key => $join) {
-            if (in_array($join->getAlias(), $aliases, true)) {
-                unset($joins[$key]);
+        $aliases = [];
+        foreach ($allJoins as $rootAlias => $joins) {
+            foreach ($joins as $key => $join) {
+                if (in_array($join->getAlias(), $aliases, true)) {
+                    unset($allJoins[$rootAlias][$key]);
+                    continue;
+                }
+
+                $aliases[] = $join->getAlias();
             }
 
-            $aliases[] = $join->getAlias();
+            $allJoins[$rootAlias] = array_values($allJoins[$rootAlias]);
         }
-        $builder->add('join', [$alias => $joins]);
+
+        // Without $append, a join part replaces all joins, keyed by root alias.
+        $builder->add('join', $allJoins);
     }
 }

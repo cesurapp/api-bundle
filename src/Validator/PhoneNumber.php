@@ -2,6 +2,8 @@
 
 namespace Cesurapp\ApiBundle\Validator;
 
+use libphonenumber\PhoneNumberFormat;
+use Symfony\Component\Validator\Attribute\HasNamedArguments;
 use Symfony\Component\Validator\Constraint;
 
 #[\Attribute]
@@ -19,19 +21,25 @@ class PhoneNumber extends Constraint
     public const VOIP = 'voip';
     public const VOICEMAIL = 'voicemail';
 
+    /** @var list<string> */
+    public array $types;
+
+    /**
+     * @param string|list<string>|null $types
+     */
+    #[HasNamedArguments]
     public function __construct(
-        public array|string|null $types = null,
+        array|string|null $types = null,
         public ?string $defaultRegion = null,
         public ?string $regionPath = null,
-        public ?int $format = null,
+        public int|PhoneNumberFormat|null $format = null, // int constant in libphonenumber 8, enum case in 9
         public ?string $message = null,
-        mixed $options = null,
         ?array $groups = null,
         mixed $payload = null,
     ) {
         $this->defaultRegion ??= 'ZZ'; // PhoneNumberUtil::UNKNOWN_REGION
-        $this->types = (is_string($this->types) ? [$this->types] : $this->types) ?? [self::ANY];
-        parent::__construct($options, $groups, $payload);
+        $this->types = null === $types ? [self::ANY] : (array) $types;
+        parent::__construct(null, $groups, $payload);
     }
 
     public function getMessage(): string

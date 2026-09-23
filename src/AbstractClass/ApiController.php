@@ -49,12 +49,21 @@ abstract class ApiController implements ServiceSubscriberInterface
         ];
     }
 
+    private function service(string $id): mixed
+    {
+        if (null === $this->container) {
+            throw new \LogicException(sprintf('The container is not set on "%s": is it registered as a controller service?', static::class));
+        }
+
+        return $this->container->get($id);
+    }
+
     /**
      * Gets a container parameter by its name.
      */
     protected function getParameter(string $name): array|bool|float|int|string|null
     {
-        return $this->container->get('parameter_bag')->get($name);
+        return $this->service('parameter_bag')->get($name);
     }
 
     /**
@@ -64,10 +73,10 @@ abstract class ApiController implements ServiceSubscriberInterface
      */
     protected function forward(string $controller, array $path = [], array $query = []): ApiResponse|Response
     {
-        $request = $this->container->get('request_stack')->getCurrentRequest();
+        $request = $this->service('request_stack')->getCurrentRequest();
         $path['_controller'] = $controller;
 
-        return $this->container->get('http_kernel')->handle($request->duplicate($query, null, $path), HttpKernelInterface::SUB_REQUEST);
+        return $this->service('http_kernel')->handle($request->duplicate($query, null, $path), HttpKernelInterface::SUB_REQUEST);
     }
 
     /**
@@ -77,12 +86,12 @@ abstract class ApiController implements ServiceSubscriberInterface
      */
     protected function generateUrl(string $route, array $parameters = [], int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH): string
     {
-        return $this->container->get('router')->generate($route, $parameters, $referenceType);
+        return $this->service('router')->generate($route, $parameters, $referenceType);
     }
 
     protected function isGranted(mixed $attribute, mixed $subject = null): bool
     {
-        return $this->container->get('security.authorization_checker')->isGranted($attribute, $subject);
+        return $this->service('security.authorization_checker')->isGranted($attribute, $subject);
     }
 
     protected function isGrantedDeny(mixed $attribute, mixed $subject = null): void
@@ -97,7 +106,7 @@ abstract class ApiController implements ServiceSubscriberInterface
      */
     protected function getUser(): ?UserInterface
     {
-        if (null === $token = $this->container->get('security.token_storage')->getToken()) {
+        if (null === $token = $this->service('security.token_storage')->getToken()) {
             return null;
         }
 
@@ -109,7 +118,7 @@ abstract class ApiController implements ServiceSubscriberInterface
      */
     protected function isCsrfTokenValid(string $id, ?string $token): bool
     {
-        return $this->container->get('security.csrf.token_manager')->isTokenValid(new CsrfToken($id, $token));
+        return $this->service('security.csrf.token_manager')->isTokenValid(new CsrfToken($id, $token));
     }
 
     /**

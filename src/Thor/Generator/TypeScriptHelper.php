@@ -2,7 +2,6 @@
 
 namespace Cesurapp\ApiBundle\Thor\Generator;
 
-use Cesurapp\ApiBundle\Response\ApiResourceInterface;
 use Cesurapp\ApiBundle\Thor\Extractor\ThorExtractor;
 
 class TypeScriptHelper
@@ -57,7 +56,23 @@ class TypeScriptHelper
         return $newPath;
     }
 
+    /**
+     * @return ($parent is true ? array{nullable: bool, items: list<string>|null} : string|null)
+     */
     public function renderVariables(array $attributes, int $sub = 1, bool $parent = false): string|array|null
+    {
+        $rendered = $this->renderItems($attributes, $sub);
+        if ($parent) {
+            return $rendered;
+        }
+
+        return $rendered['items'] ? implode(",\n", $rendered['items']) : null;
+    }
+
+    /**
+     * @return array{nullable: bool, items: list<string>|null}
+     */
+    private function renderItems(array $attributes, int $sub): array
     {
         $attrs = [];
         $allNull = true;
@@ -66,7 +81,7 @@ class TypeScriptHelper
             $isNull = false;
 
             if (is_array($value)) {
-                $r = $this->renderVariables($value, $sub + 1, true);
+                $r = $this->renderItems($value, $sub + 1);
                 if (!$r['items']) {
                     continue;
                 }
@@ -123,23 +138,16 @@ class TypeScriptHelper
             });
         }
 
-        if ($parent) {
-            return [
-                'nullable' => $allNull,
-                'items' => $attrs ?: null,
-            ];
-        }
-
-        return $attrs ? implode(",\n", $attrs) : null;
+        return [
+            'nullable' => $allNull,
+            'items' => $attrs ?: null,
+        ];
     }
 
     private function convertTsType(string $type): string
     {
-        if (class_exists($type) && in_array(ApiResourceInterface::class, class_implements($type), true)) {
-            return ThorExtractor::baseClass($type);
-        }
-        if (enum_exists($type)) {
-            return ThorExtractor::baseClass($type);
+        if (ThorExtractor::isResourceClass($type) || enum_exists($type)) {
+            return ThorExtractor::baseClass($type) ?? $type;
         }
         if (class_exists($type)) {
             $type = 'string';

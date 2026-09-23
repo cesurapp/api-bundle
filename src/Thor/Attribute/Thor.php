@@ -9,20 +9,20 @@ namespace Cesurapp\ApiBundle\Thor\Attribute;
 final class Thor
 {
     public function __construct(
-        protected string $stack = '',
-        protected string $title = '',
-        protected string $info = '',
-        protected array $query = [],
-        protected array $request = [],
-        protected array $header = [],
-        protected array $response = [],
-        protected string $dto = '',
-        protected array $roles = [],
-        protected bool $isHidden = false,
-        protected bool $isPaginate = false,
-        protected bool $isAuth = false,
-        protected int $order = 0,
-        protected bool $isFile = false,
+        public readonly string $stack = '',
+        public readonly string $title = '',
+        public readonly string $info = '',
+        public readonly array $query = [],
+        public readonly array $request = [],
+        public readonly array $header = [],
+        public readonly array $response = [],
+        public readonly string $dto = '',
+        public readonly array $roles = [],
+        public readonly bool $isHidden = false,
+        public readonly bool $isPaginate = false,
+        public readonly bool $isAuth = false,
+        public readonly int $order = 0,
+        public readonly bool $isFile = false,
     ) {
     }
 }

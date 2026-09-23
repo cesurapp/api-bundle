@@ -40,9 +40,6 @@ class Kernel extends BaseKernel
             ],
             'orm' => [
                 'auto_mapping' => true,
-                'controller_resolver' => [
-                    'auto_mapping' => false,
-                ],
                 'mappings' => [
                     'App' => [
                         'is_bundle' => false,
@@ -56,6 +53,8 @@ class Kernel extends BaseKernel
         ]);
 
         $services = $container->services()->defaults()->autowire()->autoconfigure();
+        $services->set('logger', \Psr\Log\NullLogger::class);
+        $services->load('Cesurapp\\ApiBundle\\Tests\\_App\\Controller\\', '_App/Controller');
         $services->load('Cesurapp\\ApiBundle\\Tests\\_App\\Dto\\', '_App/Dto');
         $services->load('Cesurapp\\ApiBundle\\Tests\\_App\\Repository\\', '_App/Repository');
         $services->load('Cesurapp\\ApiBundle\\Tests\\_App\\Resources\\', '_App/Resources');

@@ -4,12 +4,15 @@ namespace Cesurapp\ApiBundle\Tests\EventListener;
 
 use Cesurapp\ApiBundle\EventListener\GlobalExceptionHandler;
 use Cesurapp\ApiBundle\Exception\ValidationException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -128,5 +131,65 @@ class GlobalExceptionHandlerTest extends KernelTestCase
         $dispatcher->dispatch($event, 'onKernelException');
 
         $this->assertEquals(null, $event->getResponse());
+    }
+
+    public function testUnexpectedServerErrorMessageIsHiddenOutsideDebug(): void
+    {
+        $response = $this->handle(new \RuntimeException("SQLSTATE[23000]: Duplicate entry 'admin@corp.com'"), debug: false);
+
+        $this->assertSame(500, $response->getStatusCode());
+        $this->assertSame(['type' => 'RuntimeException', 'code' => 500, 'message' => GlobalExceptionHandler::GENERIC_MESSAGE], json_decode($response->getContent(), true));
+    }
+
+    public function testUnexpectedServerErrorMessageIsShownInDebug(): void
+    {
+        $response = $this->handle(new \RuntimeException('SQLSTATE[23000]'), debug: true);
+
+        $this->assertSame('SQLSTATE[23000]', json_decode($response->getContent(), true)['message']);
+    }
+
+    public function testClientErrorMessagesStayVisible(): void
+    {
+        $this->assertSame('Wrong OTP key!', json_decode($this->handle(new \RuntimeException('Wrong OTP key!', 403), debug: false)->getContent(), true)['message']);
+        $this->assertSame('Down for maintenance', json_decode($this->handle(new HttpException(503, 'Down for maintenance'), debug: false)->getContent(), true)['message']);
+    }
+
+    #[DataProvider('nonErrorCodes')]
+    public function testNonErrorCodeIsNotUsedAsStatus(int $code): void
+    {
+        $this->assertSame(500, $this->handle(new \LogicException('x', $code), debug: false)->getStatusCode());
+    }
+
+    public static function nonErrorCodes(): iterable
+    {
+        yield [101];
+        yield [204];
+        yield [302];
+        yield [1062];
+    }
+
+    public function testHttpExceptionHeadersAreKept(): void
+    {
+        $response = $this->handle(new UnauthorizedHttpException('Signature', 'Invalid link.'), debug: false);
+
+        $this->assertSame(401, $response->getStatusCode());
+        $this->assertSame('Signature', $response->headers->get('WWW-Authenticate'));
+    }
+
+    private function handle(\Throwable $exception, bool $debug): \Symfony\Component\HttpFoundation\Response
+    {
+        $translator = $this->createStub(TranslatorInterface::class);
+        $translator->method('trans')->willReturnArgument(0);
+
+        $listener = new GlobalExceptionHandler($translator, new ParameterBag([
+            'api.exception_converter' => true,
+            'kernel.environment' => 'prod',
+            'kernel.debug' => $debug,
+        ]));
+
+        $event = new ExceptionEvent($this->createStub(HttpKernelInterface::class), Request::create('/'), HttpKernelInterface::MAIN_REQUEST, $exception);
+        $listener->onKernelException($event);
+
+        return $event->getResponse();
     }
 }

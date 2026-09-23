@@ -11,9 +11,9 @@ readonly class ApiResourceLocator
     {
     }
 
-    public function get(string $resource): ApiResourceInterface
+    public function get(?string $resource): ApiResourceInterface
     {
-        if ($this->locator->has($resource)) {
+        if (null !== $resource && $this->locator->has($resource)) {
             return $this->locator->get($resource);
         }
 

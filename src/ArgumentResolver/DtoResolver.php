@@ -19,11 +19,10 @@ readonly class DtoResolver implements ValueResolverInterface
 
     public function resolve(Request $request, ArgumentMetadata $argument): iterable
     {
-        if (!is_subclass_of($argument->getType(), ApiDto::class)) {
+        $dto = $argument->getType();
+        if (null === $dto || !is_subclass_of($dto, ApiDto::class)) {
             return [];
         }
-
-        $dto = $argument->getType();
 
         yield new $dto($request, $this->validator);
     }

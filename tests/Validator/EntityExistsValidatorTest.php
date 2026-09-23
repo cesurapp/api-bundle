@@ -36,8 +36,12 @@ class EntityExistsValidatorTest extends KernelTestCase
 
         $class->user = $user->getId();
         $this->assertSame(0, $validator->validateProperty($class, 'user')->count());
+        $this->assertInstanceOf(User::class, $class->user);
+
+        // Not found: a violation, and the submitted value is left as it was
         $class->user = 2;
         $this->assertSame(1, $validator->validateProperty($class, 'user')->count());
+        $this->assertSame(2, $class->user);
     }
 
     private function initDatabase(KernelInterface $kernel): void

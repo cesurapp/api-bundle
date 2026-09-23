@@ -6,24 +6,33 @@ use Symfony\Component\Routing\Route;
 
 trait ExtractController
 {
-    public function extractController(\ReflectionClass $refController, \ReflectionMethod $refMethod, Route $route, string $projectDir): array
+    /**
+     * Controller class, file and line are only for the dev "open in PhpStorm" link: the docs are
+     * public in other environments and must not map the application's source tree.
+     */
+    public function extractController(\ReflectionClass $refController, \ReflectionMethod $refMethod, Route $route, string $projectDir, bool $withSource = false): array
     {
-        return [
-            'controller' => $route->getDefault('_controller'),
-            'controllerPath' => str_replace($projectDir, '', $refController->getFileName()),
-            'controllerLine' => $refMethod->getStartLine(),
+        $data = [
             'controllerResponseType' => $this->getResponseType($refMethod->getReturnType()),
         ];
+
+        if ($withSource) {
+            $data['controller'] = $route->getDefault('_controller');
+            $data['controllerPath'] = str_replace($projectDir, '', (string) $refController->getFileName());
+            $data['controllerLine'] = $refMethod->getStartLine();
+        }
+
+        return $data;
     }
 
-    private function getResponseType(\ReflectionNamedType|\ReflectionUnionType|\ReflectionType $type): string
+    private function getResponseType(?\ReflectionType $type): string
     {
         if ($type instanceof \ReflectionUnionType) {
-            return implode('|', array_map(static fn (\ReflectionNamedType $t) => ThorExtractor::baseClass($t->getName()), $type->getTypes()));
+            return implode('|', array_map(static fn (\ReflectionType $t) => $t instanceof \ReflectionNamedType ? ThorExtractor::baseClass($t->getName()) : 'Mixed', $type->getTypes()));
         }
 
         if ($type instanceof \ReflectionNamedType) {
-            return ThorExtractor::baseClass($type->getName());
+            return (string) ThorExtractor::baseClass($type->getName());
         }
 
         return 'Mixed';

@@ -25,25 +25,45 @@ trait ExportTrait
         return $f ?: $request->request->all($key);
     }
 
+    /**
+     * Export is offered by paginated list responses only — the same ones Thor documents it for.
+     */
     private function isExport(Request $request, array $resource): bool
     {
-        return $this->getAll($request, 'export') && array_filter($resource, static fn ($v) => isset($v['table']));
+        return null !== $this->query
+            && $this->isPaginate()
+            && $this->getAll($request, 'export')
+            && array_any($resource, static fn ($v) => isset($v['table']));
     }
 
     /**
      * Export to XLS | Csv.
+     *
+     * @param int|null $limit max rows; null/0 = unlimited
      */
-    private function exportStream(QueryBuilder|Query $builder, Request $request, array $resource): StreamedResponse
+    private function exportStream(QueryBuilder|Query $builder, Request $request, array $resource, ?int $limit = null): StreamedResponse
     {
         $resource = array_filter($resource, static fn ($v) => isset($v['table']));
-        $exportFields = $this->getArray($request, 'export_field');
-        $fields = array_intersect(array_map('strtolower', $exportFields), array_keys($resource)) ?: array_keys($resource);
+
+        // export_field[] is matched case-insensitively (ID → id, createdat → createdAt)
+        $keys = [];
+        foreach (array_keys($resource) as $key) {
+            $keys[strtolower((string) $key)] = $key;
+        }
+        $fields = [];
+        foreach ($this->getArray($request, 'export_field') as $field) {
+            if (is_string($field) && isset($keys[strtolower($field)])) {
+                $fields[] = $keys[strtolower($field)];
+            }
+        }
+        $fields = array_values(array_unique($fields)) ?: array_keys($resource);
 
         // Source
         $source = new DoctrineORMQuerySourceIterator(
-            $builder->getQuery(),
+            $builder instanceof QueryBuilder ? $builder->getQuery() : $builder,
             $fields,
-            array_map(static fn ($v) => $v['table'] ?? [], $resource)
+            array_map(static fn ($v) => $v['table'] ?? [], $resource),
+            limit: $limit ?: null,
         );
 
         // Writer

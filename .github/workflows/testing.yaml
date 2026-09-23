@@ -1,44 +1,50 @@
 name: App Tester
 on:
   push:
-
-env:
-  php-version: '8.4'
-  php-extensions: :xdebug
-  key: php-cache
+  pull_request:
 
 jobs:
   phpunit:
     # Configuration
-    name: App Test
-    runs-on: ubuntu-22.04
+    name: App Test (PHP ${{ matrix.php }}, ${{ matrix.dependencies }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.4', '8.5']
+        dependencies: ['locked']
+        include:
+          # Lowest allowed versions of the direct dependencies (what an app may still have installed)
+          - php: '8.4'
+            dependencies: 'lowest'
 
     # Steps
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Install PHP
       - name: Install PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ env.php-version }}
-          extensions: ${{ env.php-extensions }}
-          ini-values: sys_temp_dir=${{ runner.temp }}
+          php-version: ${{ matrix.php }}
+          extensions: :xdebug
       - name: Get Composer Cache Directory
         id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v3
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          key: ${{ runner.os }}-php${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-composer-
+            ${{ runner.os }}-php${{ matrix.php }}-composer-
 
       # Run Tests
       - name: Install App Dependencies
         run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+      - name: Lowest Direct Dependencies
+        if: matrix.dependencies == 'lowest'
+        run: composer update -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --prefer-lowest doctrine/orm giggsey/libphonenumber-for-php-lite phpunit/phpunit symfony/polyfill-php86
       - name: PHPCS Fixer
         run: composer qa:lint
       - name: PhpStan

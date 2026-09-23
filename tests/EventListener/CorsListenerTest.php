@@ -3,6 +3,7 @@
 namespace Cesurapp\ApiBundle\Tests\EventListener;
 
 use Cesurapp\ApiBundle\EventListener\CorsListener;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -159,5 +160,90 @@ class CorsListenerTest extends KernelTestCase
         $this->assertTrue($event->getResponse()->headers->has('access-control-allow-methods'));
         $this->assertTrue($event->getResponse()->headers->has('access-control-allow-headers'));
         $this->assertTrue($event->getResponse()->headers->has('access-control-expose-headers'));
+    }
+
+    #[DataProvider('localOrigins')]
+    public function testLocalOriginIsMatchedOnTheExactHost(string $origin, bool $allowed): void
+    {
+        $event = $this->responseEvent($origin, ['api.cors_header' => [], 'api.cors_allowed_origin' => []]);
+
+        $this->assertSame($allowed ? $origin : null, $event->getResponse()->headers->get('access-control-allow-origin'));
+        $this->assertSame($allowed ? 'true' : null, $event->getResponse()->headers->get('access-control-allow-credentials'));
+    }
+
+    public static function localOrigins(): iterable
+    {
+        yield ['http://localhost', true];
+        yield ['http://localhost:9000', true];
+        yield ['https://localhost', true];
+        yield ['capacitor://localhost', true];
+        yield ['ionic://localhost', true];
+        yield ['file://', true];
+        yield ['http://localhost.attacker.com', false];
+        yield ['http://localhostevil.io', false];
+        yield ['https://localhost@evil.com', false];
+        yield ['http://localhost/path', false];
+        yield ['ftp://localhost', false];
+    }
+
+    public function testResponseVariesOnOrigin(): void
+    {
+        $event = $this->responseEvent(null, ['api.cors_header' => [], 'api.cors_allowed_origin' => []]);
+        $this->assertSame(['Origin'], $event->getResponse()->getVary());
+
+        // Not added twice
+        $listener = new CorsListener(new ParameterBag([]));
+        $listener->onKernelResponse($event);
+        $this->assertSame(['Origin'], $event->getResponse()->getVary());
+    }
+
+    public function testHeadRequestReachesRouting(): void
+    {
+        $event = new RequestEvent($this->createStub(HttpKernelInterface::class), Request::create('/health', 'HEAD'), HttpKernelInterface::MAIN_REQUEST);
+        new CorsListener(new ParameterBag([]))->onKernelRequest($event);
+
+        $this->assertFalse($event->hasResponse());
+    }
+
+    public function testUnsupportedMethodIsRefused(): void
+    {
+        $event = new RequestEvent($this->createStub(HttpKernelInterface::class), Request::create('/', 'TRACE'), HttpKernelInterface::MAIN_REQUEST);
+        new CorsListener(new ParameterBag([]))->onKernelRequest($event);
+
+        $this->assertSame(405, $event->getResponse()->getStatusCode());
+        $this->assertStringContainsString('HEAD', $event->getResponse()->headers->get('Allow'));
+    }
+
+    /**
+     * `*` does not cover Authorization and is literal for credentialed requests: a preflight gets
+     * the headers it asked for when the configuration allows any header.
+     */
+    public function testPreflightAnswersRequestedHeadersForWildcard(): void
+    {
+        $bag = ['api.cors_header' => [['name' => 'Access-Control-Allow-Headers', 'value' => '*']]];
+        $request = Request::create('/', 'OPTIONS', server: ['HTTP_ORIGIN' => 'https://tenant.example', 'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'authorization,content-type']);
+
+        $event = new RequestEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
+        new CorsListener(new ParameterBag($bag))->onKernelRequest($event);
+        $this->assertSame('authorization,content-type', $event->getResponse()->headers->get('access-control-allow-headers'));
+
+        // An explicit list is kept as configured
+        $bag = ['api.cors_header' => [['name' => 'Access-Control-Allow-Headers', 'value' => 'Content-Type,Authorization']]];
+        $event = new RequestEvent($this->createStub(HttpKernelInterface::class), $request, HttpKernelInterface::MAIN_REQUEST);
+        new CorsListener(new ParameterBag($bag))->onKernelRequest($event);
+        $this->assertFalse($event->getResponse()->headers->has('access-control-allow-headers'));
+    }
+
+    private function responseEvent(?string $origin, array $parameters): ResponseEvent
+    {
+        $event = new ResponseEvent(
+            $this->createStub(HttpKernelInterface::class),
+            Request::create('/', server: null === $origin ? [] : ['HTTP_ORIGIN' => $origin]),
+            HttpKernelInterface::MAIN_REQUEST,
+            new Response(),
+        );
+        new CorsListener(new ParameterBag($parameters))->onKernelResponse($event);
+
+        return $event;
     }
 }
