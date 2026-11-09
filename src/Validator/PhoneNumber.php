@@ -21,18 +21,26 @@ class PhoneNumber extends Constraint
     public const VOIP = 'voip';
     public const VOICEMAIL = 'voicemail';
 
+    /** Formats for `format`: `+905321112233`, `+90 532 111 22 33`, `0532 111 22 33`, `tel:+90-532-111-22-33`. */
+    public const FORMAT_E164 = 'e164';
+    public const FORMAT_INTERNATIONAL = 'international';
+    public const FORMAT_NATIONAL = 'national';
+    public const FORMAT_RFC3966 = 'rfc3966';
+
     /** @var list<string> */
     public array $types;
 
     /**
-     * @param string|list<string>|null $types
+     * @param string|list<string>|null      $types
+     * @param string|PhoneNumberFormat|null $format a valid number leaves the validated property in this format:
+     *                                              a FORMAT_* name, or a PhoneNumberFormat case (libphonenumber 9)
      */
     #[HasNamedArguments]
     public function __construct(
         array|string|null $types = null,
         public ?string $defaultRegion = null,
         public ?string $regionPath = null,
-        public int|PhoneNumberFormat|null $format = null, // int constant in libphonenumber 8, enum case in 9
+        public string|PhoneNumberFormat|null $format = null,
         public ?string $message = null,
         ?array $groups = null,
         mixed $payload = null,

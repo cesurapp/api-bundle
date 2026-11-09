@@ -3,6 +3,7 @@
 namespace Cesurapp\ApiBundle\Validator;
 
 use libphonenumber\NumberParseException;
+use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberType;
 use libphonenumber\PhoneNumberUtil;
 use Symfony\Component\Validator\Constraint;
@@ -85,6 +86,21 @@ class PhoneNumberValidator extends ConstraintValidator
 
             if (!\in_array($type, $validTypes, true)) {
                 $this->addViolation($value, $constraint);
+
+                return;
+            }
+        }
+
+        // With a format, the validated property then holds the number in it, as EntityExists's holds the entity
+        if (null !== $constraint->format) {
+            $object = $this->context->getObject();
+            $property = $this->context->getPropertyName();
+            if (\is_object($object) && $property) {
+                $format = $constraint->format instanceof PhoneNumberFormat
+                    ? $constraint->format
+                    // A FORMAT_* name: libphonenumber's constant of that name, an int in 8, an enum case in 9
+                    : \constant(PhoneNumberFormat::class.'::'.strtoupper($constraint->format));
+                $object->{$property} = $util->format($phoneNumber, $format);
             }
         }
     }

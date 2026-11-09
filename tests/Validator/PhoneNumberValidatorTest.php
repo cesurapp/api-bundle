@@ -27,7 +27,7 @@ class PhoneNumberValidatorTest extends KernelTestCase
         array|string|null $type = null,
         ?string $defaultRegion = null,
         ?string $regionPath = null,
-        int|PhoneNumberFormat|null $format = null,
+        string|PhoneNumberFormat|null $format = null,
     ): void {
         $context = $this->createMock(ExecutionContextInterface::class);
         $validator = new PhoneNumberValidator();
@@ -76,6 +76,23 @@ class PhoneNumberValidatorTest extends KernelTestCase
         $this->assertSame(0, $validator->validateProperty($class, 'phoneNumber2')->count());
         $class->regionPath = 'GB';
         $this->assertSame(1, $validator->validateProperty($class, 'phoneNumber2')->count());
+    }
+
+    /** A valid number with a format leaves the property in that format; an invalid one stays as typed. */
+    public function testFormatRewritesTheValidatedProperty(): void
+    {
+        $validator = self::getContainer()->get('validator');
+        $class = new PhoneNumberFormatDummy();
+        $class->e164 = '+90 541 111 11 11';
+        $class->international = '0541 111 11 11';
+
+        $this->assertSame(0, $validator->validate($class)->count());
+        $this->assertSame('+905411111111', $class->e164);
+        $this->assertSame('+90 541 111 11 11', $class->international);
+
+        $class->e164 = '+90123';
+        $this->assertSame(1, $validator->validate($class)->count());
+        $this->assertSame('+90123', $class->e164);
     }
 
     /**
@@ -144,4 +161,13 @@ class PhoneNumberDummy
     public ?string $phoneNumber2;
 
     public string $regionPath = 'TR';
+}
+
+class PhoneNumberFormatDummy
+{
+    #[PhoneNumber(format: PhoneNumber::FORMAT_E164)]
+    public ?string $e164 = null;
+
+    #[PhoneNumber(defaultRegion: 'TR', format: PhoneNumber::FORMAT_INTERNATIONAL)]
+    public ?string $international = null;
 }
