@@ -31,16 +31,17 @@ class PhoneNumber extends Constraint
     public array $types;
 
     /**
-     * @param string|list<string>|null      $types
-     * @param string|PhoneNumberFormat|null $format a valid number leaves the validated property in this format:
-     *                                              a FORMAT_* name, or a PhoneNumberFormat case (libphonenumber 9)
+     * @param string|list<string>|null          $types
+     * @param int|string|PhoneNumberFormat|null $format a valid number leaves the validated property in this format: a
+     *                                                  FORMAT_* name, or libphonenumber's PhoneNumberFormat constant
+     *                                                  (an int in 8, an enum case in 9)
      */
     #[HasNamedArguments]
     public function __construct(
         array|string|null $types = null,
         public ?string $defaultRegion = null,
         public ?string $regionPath = null,
-        public string|PhoneNumberFormat|null $format = null,
+        public int|string|PhoneNumberFormat|null $format = null,
         public ?string $message = null,
         ?array $groups = null,
         mixed $payload = null,

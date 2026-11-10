@@ -420,7 +420,7 @@ every item of the response once, before `toArray()` runs for each, so relations 
 
 This bundle includes custom validators:
 
-- `PhoneNumber` - Validates phone numbers (libphonenumber; `+` and the country code unless `defaultRegion`/`regionPath` gives one). With `format`, a valid number leaves the property in that format: `PhoneNumber::FORMAT_E164` (`+905321112233`), `FORMAT_INTERNATIONAL`, `FORMAT_NATIONAL`, `FORMAT_RFC3966`
+- `PhoneNumber` - Validates phone numbers (libphonenumber; `+` and the country code unless `defaultRegion`/`regionPath` gives one). With `format`, a valid number leaves the property in that format: `PhoneNumber::FORMAT_E164` (`+905321112233`), `FORMAT_INTERNATIONAL`, `FORMAT_NATIONAL`, `FORMAT_RFC3966`, or libphonenumber's own `PhoneNumberFormat` constant
 - `UniqueEntity` - Validates entity uniqueness in database (keep a unique index too: two concurrent requests can both pass)
 - `EntityExists` - The value must match an entity column; the property then holds the entity
 - `Username` - Validates username format

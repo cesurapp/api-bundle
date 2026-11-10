@@ -27,7 +27,7 @@ class PhoneNumberValidatorTest extends KernelTestCase
         array|string|null $type = null,
         ?string $defaultRegion = null,
         ?string $regionPath = null,
-        string|PhoneNumberFormat|null $format = null,
+        int|string|PhoneNumberFormat|null $format = null,
     ): void {
         $context = $this->createMock(ExecutionContextInterface::class);
         $validator = new PhoneNumberValidator();
@@ -85,10 +85,12 @@ class PhoneNumberValidatorTest extends KernelTestCase
         $class = new PhoneNumberFormatDummy();
         $class->e164 = '+90 541 111 11 11';
         $class->international = '0541 111 11 11';
+        $class->national = '+90 541 111 11 11';
 
         $this->assertSame(0, $validator->validate($class)->count());
         $this->assertSame('+905411111111', $class->e164);
         $this->assertSame('+90 541 111 11 11', $class->international);
+        $this->assertSame('0541 111 11 11', $class->national);
 
         $class->e164 = '+90123';
         $this->assertSame(1, $validator->validate($class)->count());
@@ -170,4 +172,8 @@ class PhoneNumberFormatDummy
 
     #[PhoneNumber(defaultRegion: 'TR', format: PhoneNumber::FORMAT_INTERNATIONAL)]
     public ?string $international = null;
+
+    /** libphonenumber's own constant: an int in 8 (the lowest CI job), an enum case in 9 */
+    #[PhoneNumber(defaultRegion: 'TR', format: PhoneNumberFormat::NATIONAL)]
+    public ?string $national = null;
 }

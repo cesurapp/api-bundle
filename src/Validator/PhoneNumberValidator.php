@@ -96,10 +96,10 @@ class PhoneNumberValidator extends ConstraintValidator
             $object = $this->context->getObject();
             $property = $this->context->getPropertyName();
             if (\is_object($object) && $property) {
-                $format = $constraint->format instanceof PhoneNumberFormat
-                    ? $constraint->format
-                    // A FORMAT_* name: libphonenumber's constant of that name, an int in 8, an enum case in 9
-                    : \constant(PhoneNumberFormat::class.'::'.strtoupper($constraint->format));
+                // A FORMAT_* name stands for libphonenumber's constant of that name; theirs (an int in 8, an enum case in 9) as is
+                $format = \is_string($constraint->format)
+                    ? \constant(PhoneNumberFormat::class.'::'.strtoupper($constraint->format))
+                    : $constraint->format;
                 $object->{$property} = $util->format($phoneNumber, $format);
             }
         }
